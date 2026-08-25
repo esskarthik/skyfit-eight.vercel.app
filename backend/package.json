@@ -1,0 +1,17 @@
+{
+  "name": "skyfit-zone-backend",
+  "version": "1.0.0",
+  "description": "SKYFIT ZONE - Gym Membership & Pricing Backend API",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "postinstall": "echo \"SKYFIT ZONE ready\""
+  },
+  "engines": { "node": ">=18" },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^17.4.2",
+    "express": "^4.18.2"
+  }
+}

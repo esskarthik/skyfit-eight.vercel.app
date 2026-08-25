@@ -1,0 +1,22 @@
+{
+  "name": "SKYFIT ZONE — Transform Your Body",
+  "short_name": "SKYFIT ZONE",
+  "description": "Elite training, personal coaching & 12-week transformation — Peddapuram's #1 gym.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "browser"],
+  "background_color": "#0A0E1A",
+  "theme_color": "#FF4A1E",
+  "orientation": "portrait-primary",
+  "icons": [
+    { "src": "assets/logo-new-icon.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "assets/logo-new-icon.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "assets/logo-new-icon.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Join Now", "url": "/#memberships", "description": "View membership plans", "icons": [{ "src": "assets/logo-new-icon.png", "sizes": "192x192" }] },
+    { "name": "My Progress", "url": "/#progress", "description": "Track your membership", "icons": [{ "src": "assets/logo-new-icon.png", "sizes": "192x192" }] },
+    { "name": "Admin", "url": "/admin.html", "description": "Manage clients", "icons": [{ "src": "assets/logo-new-icon.png", "sizes": "192x192" }] }
+  ]
+}

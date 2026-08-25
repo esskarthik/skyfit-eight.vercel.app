@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: skyfit-zone
+    env: node
+    plan: free
+    rootDir: .
+    buildCommand: npm install --prefix backend
+    startCommand: node backend/server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: OPENROUTER_API_KEY
+        sync: false

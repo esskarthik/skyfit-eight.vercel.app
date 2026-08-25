@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SKYFIT ZONE — Transform Your Body. Elevate Your Life.</title>
+<meta name="description" content="SKYFIT ZONE gym — Normal, Personal Training, Transformation & Elite memberships. Join now and track progress.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/png" href="assets/logo-new-icon.png">
+<link rel="apple-touch-icon" href="assets/logo-new-icon.png">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#FF4A1E">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="SKYFIT ZONE">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<!-- NAV -->
+<header class="navbar" id="navbar">
+  <div class="nav-inner">
+    <a class="logo" href="#home"><img src="assets/logo-new-icon.png" alt="SKYFIT ZONE" class="logo-img logo-photo" style="border-radius:14px;background:#fff;padding:2px"><span>SKYFIT <em>ZONE</em></span></a>
+    <nav class="nav-links" id="navLinks">
+      <a href="#home" class="active">Home</a>
+      <a href="#profile">Profile</a>
+      <a href="#workouts">Workouts</a>
+      <a href="#trainers">Trainers</a>
+      <a href="#transformation">Transformation</a>
+      <a href="#memberships">Memberships</a>
+      <a href="#progress">Progress</a>
+      <a href="#contact">Contact</a>
+    </nav>
+    <div class="nav-actions">
+      <button class="btn btn-ghost hide-mobile" onclick="scrollToDashboard()"><i class="fa-regular fa-user"></i> My Progress</button>
+      <button class="btn btn-primary" onclick="openCheckout()"><i class="fa-solid fa-fire"></i> JOIN NOW</button>
+      <button class="hamburger" id="hamburger" aria-label="menu"><i class="fa-solid fa-bars"></i></button>
+    </div>
+  </div>
+</header>
+
+<!-- HERO -->
+<section id="home" class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-overlay"></div>
+  <div class="container hero-grid">
+    <div class="hero-left">
+      <div class="eyebrow"><span class="dot"></span> #1 FITNESS DESTINATION IN CITY — 500+ TRANSFORMATIONS</div>
+      <h1 class="hero-title">TRANSFORM<br><span>YOUR BODY.</span><br>ELEVATE YOUR LIFE.</h1>
+      <p class="hero-sub">Elite training, personal coaching & science-backed transformation programs. Start today at <strong>₹1,299/month</strong> and become your strongest self.</p>
+      <div class="hero-ctas">
+        <button class="btn btn-primary btn-lg" onclick="document.getElementById('memberships').scrollIntoView({behavior:'smooth'})">CHOOSE YOUR PLAN <i class="fa-solid fa-arrow-right"></i></button>
+        <button class="btn btn-outline btn-lg" onclick="openCheckout('transform-yearly')"><i class="fa-solid fa-play"></i> START 12-MONTH PROGRAM</button>
+      </div>
+      <div class="hero-stats">
+        <div><b>500+</b><span>Members</span></div>
+        <div><b>15+</b><span>Expert Trainers</span></div>
+        <div><b>4.9★</b><span>Google Rating</span></div>
+        <div><b>12</b><span>Month Transformation</span></div>
+      </div>
+    </div>
+      <div class="hero-card-wrap">
+        <div class="hero-offer-card">
+          <div class="offer-top">🔥 TRANSFORMATION PROGRAM <span class="badge-premium">PREMIUM</span></div>
+          <div class="offer-price"><span class="rupee">₹</span>11,999 <small>/ 12 MONTHS</small></div>
+          <ul class="offer-list">
+            <li><i class="fa-solid fa-check"></i> Personalized workouts</li>
+            <li><i class="fa-solid fa-check"></i> Personalized diet guidance</li>
+            <li><i class="fa-solid fa-check"></i> Personal trainer + weekly analysis</li>
+            <li><i class="fa-solid fa-check"></i> Before/after tracking</li>
+          </ul>
+          <button class="btn btn-primary btn-block" onclick="openCheckout('transform-yearly')">START NOW — ₹11,999 <i class="fa-solid fa-bolt"></i></button>
+          <p class="offer-note"><i class="fa-regular fa-clock"></i> Limited slots — Next batch starts Monday</p>
+        </div>
+        <div class="active-banner"><i class="fa-solid fa-circle" style="color:#22c55e;font-size:8px"></i> 31 members joined this week</div>
+      </div>
+  </div>
+</section>
+
+<!-- GYM PROFILE - THEME FROM CIRCULAR LOGO -->
+<section id="profile" class="section" style="padding-top:42px">
+  <div class="container">
+    <div class="profile-hero">
+      <div class="profile-badge-wrap" style="background:transparent">
+        <img src="assets/logo-new-icon.png" alt="SKYFIT ZONE New Logo" class="profile-badge" style="border:none;box-shadow:0 24px 60px rgba(0,0,0,.55);background:transparent;border-radius:28px;padding:0">
+        <div class="profile-ring"></div>
+      </div>
+      <div class="profile-content">
+        <div class="profile-eyebrow"><span style="width:8px;height:8px;background:var(--primary);border-radius:50%;display:inline-block"></span> EST. 2018 • PEDDAPURAM, AP 533437</div>
+        <h2>SKYFIT <span>ZONE</span></h2>
+        <p class="profile-tagline">Where <b>Strength</b> meets <b>Transformation</b> — Black • White • Orange • Maroon</p>
+        <p class="profile-desc">Inspired by your circular logo — the <b>black flex</b> for power, <b>orange female</b> for energy, and the <b>barbell S</b> for community. This is not just a gym, it's a 360° transformation system: training + nutrition + accountability.</p>
+        <div class="profile-stats">
+          <div><b>500+</b><span>Transformations</span></div>
+          <div><b>15+</b><span>Elite Coaches</span></div>
+          <div><b>84</b><span>Days to New You</span></div>
+          <div><b>4.9★</b><span>Member Rated</span></div>
+        </div>
+        <div class="profile-themes">
+          <span class="theme-dot" style="background:#0A0A0F" title="Black - Power"></span>
+          <span class="theme-dot" style="background:#FFFFFF;border:1px solid #ddd" title="White - Purity"></span>
+          <span class="theme-dot" style="background:#FF4A1E" title="Orange - Energy"></span>
+          <span class="theme-dot" style="background:#7A1C20" title="Maroon - Strength"></span>
+          <span class="theme-label">Theme from your photo — applied across site</span>
+        </div>
+        <div class="profile-actions">
+          <button class="btn btn-primary" onclick="document.getElementById('memberships').scrollIntoView({behavior:'smooth'})">View Memberships <i class="fa-solid fa-arrow-right"></i></button>
+          <button class="btn btn-outline" onclick="document.getElementById('contact').scrollIntoView({behavior:'smooth'})">Visit Gym</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WORKOUTS -->
+<section id="workouts" class="section">
+  <div class="container">
+    <div class="section-head">
+      <h2><span>WORKOUTS</span> FOR EVERY GOAL</h2>
+      <p>Strength, cardio, flexibility & combat — guided by certified trainers</p>
+    </div>
+    <div class="workout-grid">
+      <div class="w-card"><div class="w-icon">💪</div><h3>Strength</h3><p>Progressive overload, compound lifts & muscle building.</p></div>
+      <div class="w-card"><div class="w-icon">❤️</div><h3>Cardio</h3><p>Endurance, heart health & fat burn sessions.</p></div>
+      <div class="w-card"><div class="w-icon">📈</div><h3>Weight Gain</h3><p>Calorie surplus plans & mass-building programs.</p></div>
+      <div class="w-card"><div class="w-icon">🔥</div><h3>Weight Loss</h3><p>Fat loss circuits, metabolism boost & diet plans.</p></div>
+      <div class="w-card"><div class="w-icon">✨</div><h3>Muscle Toning</h3><p>Definition, isolation work & aesthetic sculpting.</p></div>
+      <div class="w-card"><div class="w-icon">🥗</div><h3>Nutrition Guidance</h3><p>Personalized diet plans for every body type.</p></div>
+      <div class="w-card"><div class="w-icon">🏆</div><h3>Bodybuilding</h3><p>Contest prep, posing & advanced hypertrophy.</p></div>
+      <div class="w-card"><div class="w-icon">🧘</div><h3>Flexibility</h3><p>Mobility, stretch & recovery sessions.</p></div>
+      <div class="w-card"><div class="w-icon">🔄</div><h3>Body Transformation</h3><p>12-week coached programs with before/after tracking.</p></div>
+      <div class="w-card"><div class="w-icon">📊</div><h3>Body Maintaining Guidance</h3><p>Long-term maintenance, habits & lifestyle coaching.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- TRAINERS - SELECTABLE -->
+<section id="trainers" class="section section-dark">
+  <div class="container">
+    <div class="section-head" style="display:flex;justify-content:space-between;align-items:end;flex-wrap:wrap;gap:12px">
+      <div>
+        <h2><span>MEET</span> YOUR TRAINERS</h2>
+        <p>Tap <b>Select</b> to assign a trainer — saved to your membership & dashboard. Works with any plan.</p>
+      </div>
+      <div id="selectedTrainerBanner" class="selected-trainer-banner" style="display:none"></div>
+    </div>
+    <div class="trainer-filters">
+      <button class="btn btn-ghost active" data-filter="all" onclick="filterTrainers('all')">All</button>
+      <button class="btn btn-ghost" data-filter="Fat Loss" onclick="filterTrainers('Fat Loss')">Fat Loss</button>
+      <button class="btn btn-ghost" data-filter="Weight Gain" onclick="filterTrainers('Weight Gain')">Weight Gain</button>
+      <button class="btn btn-ghost" data-filter="Strength" onclick="filterTrainers('Strength')">Strength</button>
+      <button class="btn btn-ghost" data-filter="Cardio" onclick="filterTrainers('Cardio')">Cardio</button>
+    </div>
+    <div class="trainer-grid" id="trainerGrid"></div>
+    <p style="text-align:center;color:var(--muted);font-size:12px;margin-top:10px">Tip: Select a trainer first, then <b>JOIN NOW</b> — trainer will be linked to your membership automatically. You can also change it in checkout.</p>
+  </div>
+</section>
+
+<!-- TRAINER DETAIL MODAL -->
+<div class="modal-overlay" id="trainerModal" onclick="if(event.target===this) closeTrainerModal()">
+  <div class="modal" style="max-width:520px">
+    <button class="modal-close" onclick="closeTrainerModal()"><i class="fa-solid fa-xmark"></i></button>
+    <div id="trainerModalBody"></div>
+  </div>
+</div>
+
+<!-- TRAINING OVERVIEW -->
+<section id="transformation" class="section">
+  <div class="container">
+    <div class="transform-banner">
+      <div class="trans-left">
+        <div class="trans-badge">🏋️ 10 TRAINING TYPES AVAILABLE</div>
+        <h2>STRENGTH &<br>FITNESS FOR ANYONE</h2>
+        <div class="trans-price">From ₹1,299 <small>/ MONTH</small></div>
+        <p class="trans-desc">From strength training to body transformation — we cover <strong>10 specialized training types</strong> with certified coaches and real results.</p>
+        <div class="trans-includes">
+          <span>💪 Strength</span><span>❤️ Cardio</span><span>📈 Weight Gain</span><span>🔥 Weight Loss</span><span>✨ Muscle Toning</span><span>🥗 Nutrition Guidance</span><span>🏆 Bodybuilding</span><span>🧘 Flexibility</span><span>🔄 Body Transformation</span><span>📊 Maintaining Guidance</span>
+        </div>
+        <button class="btn btn-primary btn-lg" onclick="document.getElementById('memberships').scrollIntoView({behavior:'smooth'})">VIEW ALL PLANS <i class="fa-solid fa-arrow-right"></i></button>
+        <p class="trans-small">✓ No equipment needed to start &nbsp; ✓ Diet plans included &nbsp; ✓ Cancel anytime</p>
+      </div>
+      <div class="trans-right">
+        <div class="before-after">
+          <div class="ba-card ba-before"><span>BEFORE</span><div class="ba-placeholder">Day 1</div><small>Start your journey</small></div>
+          <div class="ba-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+          <div class="ba-card ba-after"><span>AFTER</span><div class="ba-placeholder">Result</div><small>Transformed</small></div>
+        </div>
+        <div class="mini-stats">
+          <div><b>-7.2kg</b><span>Avg fat loss</span></div>
+          <div><b>+2.1kg</b><span>Muscle gain</span></div>
+          <div><b>94%</b><span>Completion rate</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MEMBERSHIPS -->
+<section id="memberships" class="section section-dark">
+  <div class="container">
+    <div class="section-head">
+      <h2>CHOOSE YOUR FITNESS PLAN</h2>
+      <p>Transparent pricing • No hidden fees • Cancel anytime • Trainer support included</p>
+    </div>
+
+    <div class="plan-tabs" id="planTabs">
+      <button class="tab active" data-tab="gym">🏷️ Normal Gym</button>
+      <button class="tab" data-tab="personal">🧑‍🏫 Personal Training</button>
+      <button class="tab" data-tab="transformation">🔥 Transformation</button>
+      <button class="tab" data-tab="elite">⭐ SKYFIT ELITE</button>
+    </div>
+
+    <div id="plansMount"></div>
+
+    <div class="compare-wrap">
+      <h4>Why SKYFIT ZONE?</h4>
+      <div class="compare-grid">
+        <div><i class="fa-solid fa-shield-halved"></i><b>No lock-in</b><span>Month-to-month, cancel anytime</span></div>
+        <div><i class="fa-solid fa-dumbbell"></i><b>Elite equipment</b><span>Imported, calibrated, sanitized daily</span></div>
+        <div><i class="fa-solid fa-heart-pulse"></i><b>Assessment included</b><span>BMI, BMR & body composition on day 1</span></div>
+        <div><i class="fa-solid fa-headset"></i><b>Priority support</b><span>Trainer on WhatsApp 7 days/week</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROGRESS / DASHBOARD -->
+<section id="progress" class="section">
+  <div class="container">
+    <div class="section-head">
+      <h2><span>YOUR</span> PROGRESS DASHBOARD</h2>
+      <p>After you join, your active membership appears here — with expiry, days remaining & progress</p>
+    </div>
+
+    <div id="dashboardMount">
+      <!-- injected by JS -->
+    </div>
+
+    <div class="progress-empty-actions">
+      <button class="btn btn-outline" onclick="document.getElementById('memberships').scrollIntoView({behavior:'smooth'})">Browse plans</button>
+      <button class="btn btn-ghost" onclick="promptLookup()"><i class="fa-solid fa-magnifying-glass"></i> Lookup by email</button>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact" class="section section-dark">
+  <div class="container">
+    <div class="contact-grid">
+      <div>
+        <h2>VISIT SKYFIT ZONE</h2>
+        <p class="contact-sub">Morning 5:30 AM - 8:30 AM • Evening 5:00 PM - 8:30 PM • Free trial on your first visit</p>
+        <div class="contact-cards">
+          <div class="c-card"><i class="fa-solid fa-location-dot"></i><div><b>Address</b><span>Opposite sri lalitha skin clinic, peddapuram, Andhra Pradesh 533437</span></div></div>
+          <div class="c-card"><i class="fa-solid fa-phone"></i><div><b>Call</b><span><a href="tel:07661806851" style="color:inherit">07661806851</a></span></div></div>
+          <div class="c-card"><i class="fa-solid fa-envelope"></i><div><b>Email</b><span><a href="mailto:skyfitzone234@gmail.com" style="color:inherit">skyfitzone234@gmail.com</a></span></div></div>
+          <div class="c-card"><i class="fa-regular fa-clock"></i><div><b>Hours</b><span>Morning : 5:30 AM - 8:30 AM &nbsp;•&nbsp; Evening: 5:00 PM - 8:30 PM</span></div></div>
+        </div>
+        <div class="map-placeholder"><i class="fa-solid fa-map-location-dot"></i> Map — Opposite sri lalitha skin clinic, peddapuram <span><a href="https://maps.google.com/?q=Opposite+sri+lalitha+skin+clinic+peddapuram+533437" target="_blank" style="color:var(--accent)">Open in Maps →</a></span></div>
+      </div>
+      <form class="contact-form" id="contactForm" onsubmit="return handleContact(event)">
+        <h3>Send a message</h3>
+        <input required placeholder="Your name" id="cName">
+        <input required type="email" placeholder="Email address" id="cEmail">
+        <input placeholder="Phone (optional)" id="cPhone">
+        <select id="cInterest"><option>Interested in — Strength Training</option><option>Strength & Cardio</option><option>Personal Training</option><option>Group Training</option></select>
+        <textarea rows="4" placeholder="Tell us your goal — weight loss, muscle gain, etc." id="cMsg"></textarea>
+        <button class="btn btn-primary btn-block" type="submit">Send message <i class="fa-solid fa-paper-plane"></i></button>
+        <p class="form-note">We reply within 2 hours • No spam</p>
+      </form>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="container footer-inner">
+    <div><a class="logo" href="#home"><img src="assets/logo-new-icon.png" alt="SKYFIT ZONE" class="logo-img logo-photo" style="width:42px;height:42px;border-radius:12px;background:#fff;padding:2px"> SKYFIT <em>ZONE</em></a><p>Building stronger humans since 2018.<br>© 2026 SKYFIT ZONE. All rights reserved.</p></div>
+    <div class="footer-links"><a href="#memberships">Memberships</a><a href="#progress">Progress</a><a href="#contact">Contact</a><a href="admin.html" style="color:var(--primary)"><i class="fa-solid fa-shield-halved"></i> Admin</a><a href="#" onclick="event.preventDefault(); toast('Terms & Privacy — coming soon')">Privacy</a></div>
+    <div class="footer-social"><a href="#"><i class="fa-brands fa-instagram"></i></a><a href="#"><i class="fa-brands fa-youtube"></i></a><a href="#"><i class="fa-brands fa-whatsapp"></i></a></div>
+  </div>
+</footer>
+
+<!-- CHECKOUT MODAL -->
+<div class="modal-overlay" id="checkoutOverlay" onclick="if(event.target===this) closeCheckout()">
+  <div class="modal" role="dialog" aria-modal="true">
+    <button class="modal-close" onclick="closeCheckout()"><i class="fa-solid fa-xmark"></i></button>
+    <div class="modal-head">
+      <h3 id="modalTitle">Join SKYFIT ZONE</h3>
+      <p id="modalSubtitle">1. Select plan → 2. Enter details → 3. Choose start date → 4. Payment → 5. Activated</p>
+      <div class="stepper" id="stepper">
+        <span class="step active" data-s="1"><b>1</b> Details</span><i class="fa-solid fa-chevron-right"></i>
+        <span class="step" data-s="2"><b>2</b> Start Date</span><i class="fa-solid fa-chevron-right"></i>
+        <span class="step" data-s="3"><b>3</b> Payment</span>
+      </div>
+    </div>
+
+    <!-- selected plan summary -->
+    <div class="selected-plan" id="selectedPlanBox"></div>
+
+    <!-- STEP 1 Details -->
+    <div class="m-step active" id="mStep1">
+      <div class="form-grid">
+        <label>Full name<input id="mName" placeholder="e.g. Karthik Eeranki" autocomplete="name"></label>
+        <label>Email<input id="mEmail" type="email" placeholder="you@example.com" autocomplete="email"></label>
+        <label>Phone<input id="mPhone" placeholder="10-digit mobile" inputmode="numeric" maxlength="10"></label>
+        <label>Choose plan<select id="mPlanSelect"></select></label>
+        <label class="span2">Select Trainer (optional)<select id="mTrainerSelect"><option value="">-- No trainer / Decide later --</option></select><small style="color:var(--muted);font-weight:500">Chosen on Trainers section will auto-fill here. You can change anytime.</small></label>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="closeCheckout()">Cancel</button>
+        <button class="btn btn-primary" onclick="goStep(2)">Continue <i class="fa-solid fa-arrow-right"></i></button>
+      </div>
+    </div>
+
+    <!-- STEP 2 Start Date -->
+    <div class="m-step" id="mStep2">
+      <label>Start date<input id="mStartDate" type="date"></label>
+      <div class="date-presets">
+        <button class="btn btn-ghost" onclick="setStartOffset(0)">Today</button>
+        <button class="btn btn-ghost" onclick="setStartOffset(1)">Tomorrow</button>
+        <button class="btn btn-ghost" onclick="setStartOffset(3)">In 3 days</button>
+      </div>
+      <div class="expiry-preview" id="expiryPreview"></div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="goStep(1)"><i class="fa-solid fa-arrow-left"></i> Back</button>
+        <button class="btn btn-primary" onclick="goStep(3)">Continue to payment <i class="fa-solid fa-lock"></i></button>
+      </div>
+    </div>
+
+    <!-- STEP 3 Payment -->
+    <div class="m-step" id="mStep3">
+      <div class="pay-tabs">
+        <button class="pay-tab active" data-pay="card" onclick="switchPay('card')"><i class="fa-regular fa-credit-card"></i> Card</button>
+        <button class="pay-tab" data-pay="upi" onclick="switchPay('upi')"><i class="fa-solid fa-mobile-screen"></i> UPI</button>
+        <button class="pay-tab" data-pay="cash" onclick="switchPay('cash')"><i class="fa-solid fa-money-bill"></i> Pay at Gym</button>
+      </div>
+      <div id="payCard">
+        <div class="form-grid">
+          <label class="span2">Card number<input id="pCard" placeholder="1234 5678 9012 3456" inputmode="numeric" maxlength="19"></label>
+          <label>Expiry (MM/YY)<input id="pExp" placeholder="12/28" maxlength="5"></label>
+          <label>CVV<input id="pCvv" placeholder="123" inputmode="numeric" maxlength="3"></label>
+        </div>
+      </div>
+      <div id="payUpi" style="display:none">
+        <label>UPI ID<input id="pUpi" placeholder="yourname@upi"></label>
+      </div>
+      <div id="payCash" style="display:none">
+        <div class="cash-note"><i class="fa-solid fa-circle-info"></i> Pay at front desk within 24 hours to confirm. Your membership is reserved now.</div>
+      </div>
+      <div class="pay-summary" id="paySummary"></div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="goStep(2)"><i class="fa-solid fa-arrow-left"></i> Back</button>
+        <button class="btn btn-primary" id="payBtn" onclick="doPayment()">Pay & Activate <i class="fa-solid fa-bolt"></i></button>
+      </div>
+      <p class="secure-note"><i class="fa-solid fa-lock"></i> Secure checkout • Mock payment — no real money deducted in demo</p>
+    </div>
+
+    <!-- SUCCESS -->
+    <div class="m-step" id="mStepSuccess" style="text-align:center">
+      <div class="success-icon"><i class="fa-solid fa-check"></i></div>
+      <h3 style="margin:10px 0 6px">Membership Activated! 🎉</h3>
+      <p id="successText" style="color:var(--muted)"></p>
+      <div class="success-card" id="successCard"></div>
+      <button class="btn btn-primary btn-block" onclick="closeCheckout(); scrollToDashboard()">Go to My Progress <i class="fa-solid fa-arrow-right"></i></button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script src="app.js"></script>
+<script>if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');</script>
+</body>
+</html>
