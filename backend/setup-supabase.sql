@@ -1,7 +1,7 @@
--- SKYFIT ZONE - Supabase Schema (v2 - resets existing table)
+-- SKYFIT ZONE - Supabase Schema (v2 - resets existing table with CASCADE)
 -- Run this in Supabase SQL Editor
 
-DROP TABLE IF EXISTS memberships;
+DROP TABLE IF EXISTS memberships CASCADE;
 
 CREATE TABLE memberships (
   id TEXT PRIMARY KEY,
