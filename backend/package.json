@@ -8,8 +8,11 @@
     "dev": "node server.js",
     "postinstall": "echo \"SKYFIT ZONE ready\""
   },
-  "engines": { "node": ">=18" },
+  "engines": {
+    "node": ">=18"
+  },
   "dependencies": {
+    "@supabase/supabase-js": "^2.112.4",
     "cors": "^2.8.5",
     "dotenv": "^17.4.2",
     "express": "^4.18.2"
