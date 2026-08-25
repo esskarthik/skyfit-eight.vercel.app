@@ -1,0 +1,7 @@
+{
+  "name": "skyfit-zone",
+  "private": true,
+  "scripts": {
+    "build": "npm install --prefix backend"
+  }
+}

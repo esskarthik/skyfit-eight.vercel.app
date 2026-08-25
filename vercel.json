@@ -1,6 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "npm install --prefix backend",
+  "installCommand": "npm install --prefix backend",
   "outputDirectory": "public",
   "cleanUrls": true,
   "rewrites": [
