@@ -1,7 +1,9 @@
--- SKYFIT ZONE - Supabase Schema
+-- SKYFIT ZONE - Supabase Schema (v2 - resets existing table)
 -- Run this in Supabase SQL Editor
 
-CREATE TABLE IF NOT EXISTS memberships (
+DROP TABLE IF EXISTS memberships;
+
+CREATE TABLE memberships (
   id TEXT PRIMARY KEY,
   plan_id TEXT,
   category TEXT,
@@ -29,11 +31,7 @@ CREATE TABLE IF NOT EXISTS memberships (
   updated_at TIMESTAMPTZ
 );
 
--- Enable Row Level Security
 ALTER TABLE memberships ENABLE ROW LEVEL SECURITY;
 
--- Public can read (for progress lookup by email)
-CREATE POLICY "Public read memberships" ON memberships FOR SELECT USING (true);
-
--- Admin (authenticated via service role key) can do everything
-CREATE POLICY "Admin all memberships" ON memberships FOR ALL USING (true);
+CREATE POLICY "Public read" ON memberships FOR SELECT USING (true);
+CREATE POLICY "Admin all" ON memberships FOR ALL USING (true);
