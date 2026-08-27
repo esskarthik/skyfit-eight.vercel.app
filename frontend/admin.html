@@ -78,14 +78,20 @@ td{padding:11px 10px;border-top:1px solid var(--border);vertical-align:top}
 <div id="loginView" class="container">
   <div class="login-wrap card">
     <h1><i class="fa-solid fa-shield-halved" style="color:var(--primary)"></i> Admin Access</h1>
-    <p>Enter your admin email and password to manage all clients, add members, and track progress.</p>
-    <label class="label">Email</label>
-    <input id="emailInput" class="input" type="email" placeholder="admin@example.com" onkeydown="if(event.key==='Enter') doLogin()">
-    <label class="label">Password</label>
-    <input id="pwdInput" class="input" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter') doLogin()">
-    <button class="btn btn-primary" style="width:100%;margin-top:12px;justify-content:center" onclick="doLogin()">Unlock admin <i class="fa-solid fa-arrow-right"></i></button>
+    <p>Login with either your Supabase email/password <br>or the admin key below.</p>
+    <div style="margin-bottom:12px;">
+      <label class="label">Email</label>
+      <input id="emailInput" class="input" type="email" placeholder="admin@example.com" onkeydown="if(event.key==='Enter') doLogin()">
+      <label class="label">Password</label>
+      <input id="pwdInput" class="input" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter') doLogin()">
+    </div>
+    <div style="margin-bottom:12px;">
+      <label class="label">Admin key</label>
+      <input id="keyInput" class="input" type="password" placeholder="skyfit-admin-2026" onkeydown="if(event.key==='Enter') doLogin()">
+    </div>
+    <button class="btn btn-primary" style="width:100%;margin-top:8px;justify-content:center" onclick="doLogin()">Unlock admin <i class="fa-solid fa-arrow-right"></i></button>
     <p id="loginErr" style="color:#ef4444;font-size:12px;margin-top:10px;display:none"></p>
-    <p style="margin-top:14px;font-size:11px;color:var(--muted)">Key is stored only in this browser (sessionStorage). Set <code>ADMIN_KEY</code> in Vercel env to change it securely.</p>
+    <p style="margin-top:14px;font-size:11px;color:var(--muted)">Supabase email/password must be set up in Dashboard → Authentication → Users. <br>Default key is <code>skyfit-admin-2026</code>.</p>
   </div>
 </div>
 
@@ -125,28 +131,61 @@ let CLIENTS=[], PLANS=null, TRAINERS=[];
 let editingId=null;
 
 function toast(m){ const t=document.getElementById('toast'); t.textContent=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2600); }
-function headers(){ return { 'Content-Type':'application/json', 'authorization': `Bearer ${sessionStorage.getItem('skyfit_token')||''}` }; }
+function headers(){ 
+  const token = sessionStorage.getItem('skyfit_token'); 
+  const key = sessionStorage.getItem('skyfit_admin_key'); 
+  const h = { 'Content-Type':'application/json' };
+  if(token) h.authorization = `Bearer ${token}`;
+  if(key) h['x-admin-key'] = key;
+  return h;
+}
 function todayISO(){ return new Date().toISOString().split('T')[0]; }
 
 // Supabase token exchange: email+password → JWT
 async function doLogin(){
   const email=document.getElementById('emailInput').value.trim();
   const pwd=document.getElementById('pwdInput').value.trim();
-  if(!email||!pwd) return;
-  try{
-    const r=await fetch(`${API}/api/auth/token`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password: pwd })
-    });
-    const j=await r.json().catch(()=>({}));
-    if(!r.ok){ document.getElementById('loginErr').textContent=j.error||'Invalid credentials'; document.getElementById('loginErr').style.display='block'; return; }
-    // Store JWT token in sessionStorage
-    sessionStorage.setItem('skyfit_token', j.id_token||j.token||'');
-    ADMIN_KEY=''; // clear old key
-    showDash();
-  }catch(e){
-    document.getElementById('loginErr').textContent='Login failed'; document.getElementById('loginErr').style.display='block';
+  const key=document.getElementById('keyInput').value.trim();
+  let loggedIn=false;
+
+  // Try Supabase email/password first
+  if(email&&pwd){
+    try{
+      const r=await fetch(`${API}/api/auth/token`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password: pwd })
+      });
+      const j=await r.json().catch(()=>({}));
+      if(r.ok && j.id_token){
+        sessionStorage.setItem('skyfit_token', j.id_token||j.token||'');
+        loggedIn=true;
+      }else{
+        throw new Error(j.error||'Supabase auth failed');
+      }
+    }catch(e){
+      // Supabase auth failed — fall through to key login
+    }
+  }
+
+  // Fallback: Admin key login
+  if(!loggedIn&&key){
+    try{
+      const r=await fetch(`${API}/api/admin/check`,{headers:{'x-admin-key':key}});
+      const j=await r.json().catch(()=>({}));
+      if(r.ok){
+        sessionStorage.setItem('skyfit_token',''); // clear Supabase token
+        sessionStorage.setItem('skyfit_admin_key', key); // store key for headers/auto-login
+        ADMIN_KEY=key;
+        showDash();
+        return;
+      }
+    }catch(e){}
+  }
+
+  if(!loggedIn){
+    document.getElementById('loginErr').textContent=(!email||!pwd?'Enter email & password or key':'Invalid credentials');
+    document.getElementById('loginErr').style.display='block';
   }
 }
 function logout(){ sessionStorage.removeItem('skyfit_token'); ADMIN_KEY=''; document.getElementById('dashView').style.display='none'; document.getElementById('loginView').style.display='block'; document.getElementById('logoutBtn').style.display='none'; }

@@ -125,15 +125,25 @@ async function verifyAdminToken(token){
 }
 
 function requireAdmin(req,res,next){
+  // Option 1: Bearer JWT (from Supabase email/password login)
   const auth = req.headers.authorization || '';
-  // Bearer <jwt> format
-  if(!auth.startsWith('Bearer ')) return res.status(401).json({ error:'Unauthorized — no token' });
-  const token = auth.substring('Bearer '.length);
-  verifyAdminToken(token).then(user=>{
-    if(!user) return res.status(401).json({ error:'Unauthorized — invalid or non-admin token' });
-    req.adminUser = user;
-    next();
-  }).catch(()=> res.status(401).json({ error:'Unauthorized — token verification failed' }));
+  if(auth.startsWith('Bearer ')){
+    const token = auth.substring('Bearer '.length);
+    verifyAdminToken(token).then(user=>{
+      if(!user) return res.status(401).json({ error:'Unauthorized — invalid token' });
+      req.adminUser = user;
+      return next();
+    }).catch(()=> res.status(401).json({ error:'Unauthorized — token failed' }));
+    return;
+  }
+  // Option 2: Admin key (x-admin-key header or query key)
+  const key = req.headers['x-admin-key'] || req.query.key;
+  const ADMIN_KEY = process.env.ADMIN_KEY || 'skyfit-admin-2026';
+  if(key === ADMIN_KEY){
+    req.adminUser = { user: { email: 'key-admin' } }; // minimal user obj
+    return next();
+  }
+  return res.status(401).json({ error:'Unauthorized — invalid admin key' });
 }
 
 // ---- AUTH ROUTES ----
