@@ -96,14 +96,59 @@ function daysRemaining(expiresStr){
   return Math.ceil((exp - today) / (1000*60*60*24));
 }
 function genId(){ return 'SFZ-' + Date.now().toString(36).toUpperCase() + '-' + Math.random().toString(36).slice(2,6).toUpperCase(); }
-
 // ---- ADMIN AUTH ----
-const ADMIN_KEY = process.env.ADMIN_KEY || 'skyfit-admin-2026';
-function requireAdmin(req,res,next){
-  const key = req.headers['x-admin-key'] || req.query.key;
-  if(key !== ADMIN_KEY) return res.status(401).json({ error:'Unauthorized — invalid admin key' });
-  next();
+
+// Supabase Admin client for JWT verification (service_role key for server-side verification)
+const { createClient } = require('@supabase/supabase-js');
+const supabaseAdmin = createClient(
+  process.env.SUPABASE_URL || '',
+  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || ''
+);
+
+async function verifyAdminToken(token){
+  try{
+    const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
+    if(error) return null;
+    // Check user metadata for admin role
+    if(user && user.user_metadata && user.user_metadata.role === 'admin'){
+      return user;
+    }
+    // Also check if email matches known admin emails (fallback)
+    const adminEmails = ['admin@skyfit.example.com']; // add your admin emails here
+    if(user && adminEmails.includes(user.email)){
+      // Set metadata for future checks
+      await supabaseAdmin.auth.updateUser({ data: { role: 'admin' } });
+      return user;
+    }
+    return null;
+  }catch(e){ return null; }
 }
+
+function requireAdmin(req,res,next){
+  const auth = req.headers.authorization || '';
+  // Bearer <jwt> format
+  if(!auth.startsWith('Bearer ')) return res.status(401).json({ error:'Unauthorized — no token' });
+  const token = auth.substring('Bearer '.length);
+  verifyAdminToken(token).then(user=>{
+    if(!user) return res.status(401).json({ error:'Unauthorized — invalid or non-admin token' });
+    req.adminUser = user;
+    next();
+  }).catch(()=> res.status(401).json({ error:'Unauthorized — token verification failed' }));
+}
+
+// ---- AUTH ROUTES ----
+
+// Exchange email+password for Supabase JWT (id_token)
+app.post('/api/auth/token', async (req,res)=>{
+  const { email, password } = req.body;
+  if(!email||!password) return res.status(400).json({ error:'email and password required' });
+  try{
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if(error) return res.status(401).json({ error:error.message });
+    if(!data.user) return res.status(401).json({ error:'No user returned' });
+    res.json({ ok:true, id_token:data.session.access_token || data.session.accessToken || '' });
+  }catch(e){ res.status(500).json({ error:e.message }); }
+});
 
 // ---- API ROUTES ----
 
@@ -229,7 +274,7 @@ app.delete('/api/memberships/:id', async (req,res)=>{
 });
 
 // ---- ADMIN ROUTES ----
-app.get('/api/admin/check', requireAdmin, (req,res)=> res.json({ ok:true, admin:true }));
+app.get('/api/admin/check', requireAdmin, (req,res)=> res.json({ ok:true, admin:!!req.adminUser }));
 
 app.get('/api/admin/stats', requireAdmin, async (req,res)=>{
   try{

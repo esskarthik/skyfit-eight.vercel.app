@@ -78,9 +78,11 @@ td{padding:11px 10px;border-top:1px solid var(--border);vertical-align:top}
 <div id="loginView" class="container">
   <div class="login-wrap card">
     <h1><i class="fa-solid fa-shield-halved" style="color:var(--primary)"></i> Admin Access</h1>
-    <p>Enter admin key to manage all clients, add members, and track progress. Default key is <code style="background:var(--card2);padding:2px 6px;border-radius:6px">skyfit-admin-2026</code> (change via <code>ADMIN_KEY</code> env on Vercel).</p>
-    <label class="label">Admin key</label>
-    <input id="keyInput" class="input" type="password" placeholder="Enter admin key" onkeydown="if(event.key==='Enter') doLogin()">
+    <p>Enter your admin email and password to manage all clients, add members, and track progress.</p>
+    <label class="label">Email</label>
+    <input id="emailInput" class="input" type="email" placeholder="admin@example.com" onkeydown="if(event.key==='Enter') doLogin()">
+    <label class="label">Password</label>
+    <input id="pwdInput" class="input" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter') doLogin()">
     <button class="btn btn-primary" style="width:100%;margin-top:12px;justify-content:center" onclick="doLogin()">Unlock admin <i class="fa-solid fa-arrow-right"></i></button>
     <p id="loginErr" style="color:#ef4444;font-size:12px;margin-top:10px;display:none"></p>
     <p style="margin-top:14px;font-size:11px;color:var(--muted)">Key is stored only in this browser (sessionStorage). Set <code>ADMIN_KEY</code> in Vercel env to change it securely.</p>
@@ -89,32 +91,6 @@ td{padding:11px 10px;border-top:1px solid var(--border);vertical-align:top}
 
 <!-- DASHBOARD -->
 <div id="dashView" style="display:none">
-  <div class="container">
-    <div class="stats" id="statsMount">
-      <div class="stat"><small>Total clients</small><b id="sTotal">—</b><span>All memberships</span></div>
-      <div class="stat"><small>Active</small><b id="sActive" style="color:var(--success)">—</b><span>Currently valid</span></div>
-      <div class="stat"><small>Expiring ≤7 days</small><b id="sSoon" style="color:var(--warn)">—</b><span>Needs renewal</span></div>
-      <div class="stat"><small>Revenue</small><b id="sRev">—</b><span>Total collected</span></div>
-    </div>
-
-    <div class="toolbar">
-      <div class="search"><i class="fa-solid fa-magnifying-glass" style="color:var(--muted)"></i><input id="q" placeholder="Search name, email, phone, plan..." oninput="renderTable()"></div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <select id="fStatus" class="input" style="width:auto;padding:8px 10px" onchange="renderTable()"><option value="all">All status</option><option value="active">Active only</option><option value="expired">Expired only</option><option value="soon">Expiring ≤7 days</option></select>
-        <select id="fTrainer" class="input" style="width:auto;padding:8px 10px" onchange="renderTable()"><option value="all">All trainers</option></select>
-        <button class="btn btn-primary" onclick="openAdd()"><i class="fa-solid fa-user-plus"></i> Add client</button>
-        <button class="btn btn-ghost" onclick="loadAll()"><i class="fa-solid fa-rotate"></i> Refresh</button>
-      </div>
-    </div>
-
-    <div class="table-wrap">
-      <table>
-        <thead><tr><th>Client</th><th>Contact</th><th>Plan</th><th>Trainer</th><th>Start → Expires</th><th>Status</th><th>Price</th><th style="text-align:right">Actions</th></tr></thead>
-        <tbody id="tbody"><tr><td colspan="8" class="empty">Loading...</td></tr></tbody>
-      </table>
-    </div>
-    <p style="margin-top:10px;color:var(--muted);font-size:11px">Tip: On Vercel serverless, <code>/tmp</code> storage is ephemeral — for production, connect a real database (Vercel Postgres / MongoDB). Local dev keeps data in <code>backend/db.json</code>.</p>
-  </div>
 </div>
 
 <!-- ADD / EDIT MODAL -->
@@ -149,19 +125,31 @@ let CLIENTS=[], PLANS=null, TRAINERS=[];
 let editingId=null;
 
 function toast(m){ const t=document.getElementById('toast'); t.textContent=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2600); }
-function headers(){ return { 'Content-Type':'application/json', 'x-admin-key': ADMIN_KEY }; }
+function headers(){ return { 'Content-Type':'application/json', 'authorization': `Bearer ${sessionStorage.getItem('skyfit_token')||''}` }; }
 function todayISO(){ return new Date().toISOString().split('T')[0]; }
 
+// Supabase token exchange: email+password → JWT
 async function doLogin(){
-  const v=document.getElementById('keyInput').value.trim();
-  if(!v) return;
-  const r=await fetch(API+'/api/admin/check',{ headers:{ 'x-admin-key': v }});
-  const j=await r.json().catch(()=>({}));
-  if(!r.ok){ document.getElementById('loginErr').textContent=j.error||'Invalid key'; document.getElementById('loginErr').style.display='block'; return; }
-  ADMIN_KEY=v; sessionStorage.setItem('skyfit_admin_key', v);
-  showDash();
+  const email=document.getElementById('emailInput').value.trim();
+  const pwd=document.getElementById('pwdInput').value.trim();
+  if(!email||!pwd) return;
+  try{
+    const r=await fetch(`${API}/api/auth/token`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password: pwd })
+    });
+    const j=await r.json().catch(()=>({}));
+    if(!r.ok){ document.getElementById('loginErr').textContent=j.error||'Invalid credentials'; document.getElementById('loginErr').style.display='block'; return; }
+    // Store JWT token in sessionStorage
+    sessionStorage.setItem('skyfit_token', j.id_token||j.token||'');
+    ADMIN_KEY=''; // clear old key
+    showDash();
+  }catch(e){
+    document.getElementById('loginErr').textContent='Login failed'; document.getElementById('loginErr').style.display='block';
+  }
 }
-function logout(){ sessionStorage.removeItem('skyfit_admin_key'); ADMIN_KEY=''; document.getElementById('dashView').style.display='none'; document.getElementById('loginView').style.display='block'; document.getElementById('logoutBtn').style.display='none'; }
+function logout(){ sessionStorage.removeItem('skyfit_token'); ADMIN_KEY=''; document.getElementById('dashView').style.display='none'; document.getElementById('loginView').style.display='block'; document.getElementById('logoutBtn').style.display='none'; }
 function showDash(){
   document.getElementById('loginView').style.display='none';
   document.getElementById('dashView').style.display='block';
@@ -178,7 +166,6 @@ async function loadAll(){
     ]);
     if(s.error) throw new Error(s.error);
     PLANS=p; TRAINERS=t; CLIENTS=Array.isArray(c)?c:[];
-    // stats
     document.getElementById('sTotal').textContent=s.total;
     document.getElementById('sActive').textContent=s.active;
     document.getElementById('sSoon').textContent=s.expiringSoon;
@@ -313,11 +300,15 @@ async function delClient(id){
   toast('Deleted'); loadAll();
 }
 
-// auto-login if key present
+// auto-login if token present
 (async()=>{
-  if(!ADMIN_KEY){ return; }
-  document.getElementById('keyInput').value=ADMIN_KEY;
-  try{ const r=await fetch(API+'/api/admin/check',{headers:headers()}); if(r.ok) showDash(); }catch(e){}
+  const token = sessionStorage.getItem('skyfit_token');
+  if(!token){ return; }
+  try{ 
+    const r=await fetch(API+'/api/admin/check',{headers:headers()}); 
+    if(r.ok) showDash(); 
+    else document.getElementById('loginView').style.display='block';
+  }catch(e){}
 })();
 </script>
 </body>
