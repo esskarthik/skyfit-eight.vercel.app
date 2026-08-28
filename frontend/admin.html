@@ -4,351 +4,76 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SKYFIT ZONE — Admin</title>
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#FF4A1E">
 <link rel="icon" href="assets/logo-new-icon.png">
-<link rel="apple-touch-icon" href="assets/logo-new-icon.png">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-<style>
-*{box-sizing:border-box;margin:0;padding:0}
-:root{--bg:#0A0E1A;--card:#111827;--card2:#1A2235;--border:rgba(255,255,255,.08);--primary:#FF4A1E;--primary2:#7A1C20;--text:#F8FAFC;--muted:#94A3B8;--success:#22c55e;--warn:#f59e0b}
-body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
-a{color:var(--primary);text-decoration:none}
-.navbar{position:sticky;top:0;z-index:20;background:rgba(10,14,26,.9);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:12px 20px;display:flex;justify-content:space-between;align-items:center}
-.logo{display:flex;align-items:center;gap:10px;font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;color:#fff}
-.logo em{color:var(--primary);font-style:normal}
-.logo img{width:38px;height:38px;border-radius:10px;background:#fff;padding:2px;object-fit:contain}
-.btn{padding:9px 16px;border-radius:999px;border:1px solid var(--border);background:var(--card2);color:var(--text);font-weight:600;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;transition:.15s}
-.btn:hover{transform:translateY(-1px);border-color:rgba(255,255,255,.15)}
-.btn-primary{background:var(--primary);border-color:var(--primary);color:#fff}
-.btn-primary:hover{background:#e5431c}
-.btn-ghost{background:transparent}
-.btn-sm{padding:6px 10px;font-size:12px}
-.container{max-width:1240px;margin:0 auto;padding:20px}
-.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px}
-.login-wrap{max-width:420px;margin:60px auto}
-.login-wrap h1{font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:1px;margin-bottom:6px}
-.login-wrap p{color:var(--muted);font-size:13px;margin-bottom:18px}
-.input{width:100%;padding:11px 12px;border-radius:10px;border:1px solid var(--border);background:#0F1528;color:#fff;font-size:13px;outline:none}
-.input:focus{border-color:var(--primary)}
-.label{font-size:12px;font-weight:600;color:var(--muted);display:block;margin:0 0 5px}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-@media(max-width:640px){.grid2{grid-template-columns:1fr}}
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
-@media(max-width:800px){.stats{grid-template-columns:repeat(2,1fr)}}
-.stat{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px}
-.stat small{color:var(--muted);font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:700}
-.stat b{font-size:26px;display:block;margin-top:4px}
-.stat span{font-size:12px;color:var(--muted)}
-.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin:14px 0}
-.search{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--border);border-radius:999px;padding:8px 14px;flex:1;max-width:420px}
-.search input{flex:1;background:transparent;border:none;outline:none;color:#fff;font-size:13px}
-.table-wrap{overflow:auto;border:1px solid var(--border);border-radius:14px;background:var(--card)}
-table{width:100%;border-collapse:collapse;min-width:860px;font-size:13px}
-th{ text-align:left;padding:12px 10px;background:var(--card2);color:var(--muted);font-size:11px;letter-spacing:.07em;text-transform:uppercase;white-space:nowrap}
-td{padding:11px 10px;border-top:1px solid var(--border);vertical-align:top}
-.badge{padding:3px 8px;border-radius:999px;font-size:11px;font-weight:700}
-.badge-active{background:rgba(34,197,94,.15);color:#22c55e;border:1px solid rgba(34,197,94,.3)}
-.badge-expired{background:rgba(239,68,68,.12);color:#ef4444;border:1px solid rgba(239,68,68,.25)}
-.badge-soon{background:rgba(245,158,11,.14);color:#f59e0b;border:1px solid rgba(245,158,11,.3)}
-.truncate{max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.modal-overlay{position:fixed;inset:0;background:rgba(2,6,18,.72);backdrop-filter:blur(8px);display:none;place-items:center;padding:16px;z-index:50;overflow:auto}
-.modal-overlay.open{display:grid}
-.modal{background:#121A2E;border:1px solid var(--border);border-radius:18px;padding:20px;width:min(640px,100%);max-height:90vh;overflow:auto}
-.modal h3{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:.5px;margin-bottom:12px}
-.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.form-grid .span2{grid-column:1/-1}
-@media(max-width:560px){.form-grid{grid-template-columns:1fr}}
-.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%) translateY(80px);background:#1E293B;color:#fff;padding:11px 16px;border-radius:999px;font-size:13px;font-weight:600;opacity:0;transition:.25s;z-index:60;border:1px solid var(--border)}
-.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
-.empty{padding:28px;text-align:center;color:var(--muted)}
-</style>
+<link rel="stylesheet" href="admin.css">
 </head>
 <body>
-<header class="navbar">
-  <a href="index.html" class="logo"><img src="assets/logo-new-icon.png" alt="">SKYFIT <em>ZONE</em> <span style="font-size:11px;background:var(--primary);color:#fff;padding:2px 7px;border-radius:999px;font-family:'Inter',sans-serif;letter-spacing:.06em;margin-left:6px">ADMIN</span></a>
-  <div style="display:flex;gap:8px;align-items:center">
-    <a href="index.html" class="btn btn-ghost btn-sm"><i class="fa-solid fa-house"></i> View site</a>
-    <button id="logoutBtn" class="btn btn-ghost btn-sm" style="display:none" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
-  </div>
-</header>
 
 <!-- LOGIN -->
-<div id="loginView" class="container">
-  <div class="login-wrap card">
-    <h1><i class="fa-solid fa-shield-halved" style="color:var(--primary)"></i> Admin Access</h1>
-    <p>Login with either your Supabase email/password <br>or the admin key below.</p>
-    <div style="margin-bottom:12px;">
-      <label class="label">Email</label>
-      <input id="emailInput" class="input" type="email" placeholder="admin@example.com" onkeydown="if(event.key==='Enter') doLogin()">
-      <label class="label">Password</label>
-      <input id="pwdInput" class="input" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter') doLogin()">
-    </div>
-    <div style="margin-bottom:12px;">
-      <label class="label">Admin key</label>
-      <input id="keyInput" class="input" type="password" placeholder="skyfit-admin-2026" onkeydown="if(event.key==='Enter') doLogin()">
-    </div>
-    <button class="btn btn-primary" style="width:100%;margin-top:8px;justify-content:center" onclick="doLogin()">Unlock admin <i class="fa-solid fa-arrow-right"></i></button>
-    <p id="loginErr" style="color:#ef4444;font-size:12px;margin-top:10px;display:none"></p>
-    <p style="margin-top:14px;font-size:11px;color:var(--muted)">Supabase email/password must be set up in Dashboard → Authentication → Users. <br>Default key is <code>skyfit-admin-2026</code>.</p>
+<div id="loginView" class="login-view">
+  <div class="login-card">
+    <div class="login-brand"><img src="assets/logo-new-icon.png" alt="">SKYFIT <em>ZONE</em></div>
+    <h1>Admin Access</h1>
+    <p>Sign in with your staff credentials to manage the gym.</p>
+    <label class="label">Email</label>
+    <input id="loginEmail" class="input" type="email" placeholder="admin@skyfit.com" autocomplete="username">
+    <label class="label">Password</label>
+    <input id="loginPwd" class="input" type="password" placeholder="••••••••" autocomplete="current-password">
+    <button class="btn btn-primary btn-block" id="loginBtn" onclick="doLogin()">Unlock admin <i class="fa-solid fa-arrow-right"></i></button>
+    <p id="loginErr" class="login-err" style="display:none"></p>
   </div>
 </div>
 
-<!-- DASHBOARD -->
-<div id="dashView" style="display:none">
+<!-- APP SHELL -->
+<div id="appView" class="app" style="display:none">
+  <aside class="sidebar" id="sidebar">
+    <div class="side-brand"><img src="assets/logo-new-icon.png" alt="">SKYFIT <em>ZONE</em> <span>ADMIN</span></div>
+    <nav class="side-nav" id="sideNav"></nav>
+    <div class="side-foot">
+      <button class="side-user" onclick="location.hash='#/settings'">
+        <span class="side-avatar" id="sideAvatar">A</span>
+        <span class="side-uname" id="sideName">Admin</span>
+        <span class="side-urole" id="sideRole">ADMIN</span>
+      </button>
+      <button class="btn btn-ghost btn-sm" id="logoutBtn" onclick="doLogout()"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+      <button class="btn btn-ghost btn-sm" onclick="window.open('/','_blank')"><i class="fa-solid fa-globe"></i> View site</button>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <button class="btn btn-ghost btn-sm hamburger" id="hamburger" onclick="toggleSidebar()" aria-label="Toggle menu"><i class="fa-solid fa-bars"></i></button>
+      <div class="page-title" id="pageTitle">Dashboard</div>
+      <div class="topbar-right">
+        <button class="icon-btn" onclick="location.hash='#/notifications'" aria-label="Notifications"><i class="fa-regular fa-bell"></i><span class="dot" id="notifDot" style="display:none"></span></button>
+        <span class="topbar-user" id="topbarUser">Admin</span>
+      </div>
+    </header>
+    <main class="content" id="content"><div class="loading">Loading…</div></main>
+  </div>
 </div>
 
-<!-- ADD / EDIT MODAL -->
-<div class="modal-overlay" id="clientModal" onclick="if(event.target===this) closeModal()">
-  <div class="modal">
-    <h3 id="modalTitle"><i class="fa-solid fa-user-plus" style="color:var(--primary)"></i> Add client</h3>
-    <div class="form-grid">
-      <label class="span2">Full name<input id="cName" class="input" placeholder="e.g. Karthik Eeranki"></label>
-      <label>Email<input id="cEmail" type="email" class="input" placeholder="you@example.com"></label>
-      <label>Phone<input id="cPhone" class="input" placeholder="10-digit mobile" maxlength="10" inputmode="numeric"></label>
-      <label>Plan<select id="cPlan" class="input"></select></label>
-      <label>Trainer<select id="cTrainer" class="input"><option value="">-- No trainer --</option></select></label>
-      <label>Start date<input id="cStart" type="date" class="input"></label>
-      <label>Payment<select id="cPay" class="input"><option value="cash">Cash / Pay at gym</option><option value="card">Card</option><option value="upi">UPI</option><option value="">No payment yet</option></select></label>
-      <label class="span2">Notes (optional)<input id="cNotes" class="input" placeholder="Goal, weight, special note..."></label>
-    </div>
-    <div id="expiryHint" style="margin:10px 0 0;color:var(--muted);font-size:12px"></div>
-    <p id="formErr" style="color:#ef4444;font-size:12px;margin-top:8px;display:none"></p>
-    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:14px">
-      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-primary" id="saveBtn" onclick="saveClient()">Save client</button>
+<!-- GENERIC MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this) closeModal()">
+  <div class="modal" id="modal"></div>
+</div>
+
+<!-- CONFIRM DIALOG -->
+<div class="modal-overlay" id="confirmOverlay" onclick="if(event.target===this) closeConfirm()">
+  <div class="modal confirm">
+    <h3 id="confirmTitle">Are you sure?</h3>
+    <p id="confirmMsg" class="muted"></p>
+    <div class="confirm-actions">
+      <button class="btn btn-ghost" onclick="closeConfirm()">Cancel</button>
+      <button class="btn btn-danger" id="confirmOk" onclick="confirmOk()">Confirm</button>
     </div>
   </div>
 </div>
 
 <div id="toast" class="toast"></div>
 
-<script>
-const API = (location.hostname==='localhost'||location.hostname==='127.0.0.1') ? 'http://localhost:4000' : location.origin;
-let ADMIN_KEY = sessionStorage.getItem('skyfit_admin_key') || '';
-let CLIENTS=[], PLANS=null, TRAINERS=[];
-let editingId=null;
-
-function toast(m){ const t=document.getElementById('toast'); t.textContent=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2600); }
-function headers(){ 
-  const token = sessionStorage.getItem('skyfit_token'); 
-  const key = sessionStorage.getItem('skyfit_admin_key'); 
-  const h = { 'Content-Type':'application/json' };
-  if(token) h.authorization = `Bearer ${token}`;
-  if(key) h['x-admin-key'] = key;
-  return h;
-}
-function todayISO(){ return new Date().toISOString().split('T')[0]; }
-
-// Supabase token exchange: email+password → JWT
-async function doLogin(){
-  const email=document.getElementById('emailInput').value.trim();
-  const pwd=document.getElementById('pwdInput').value.trim();
-  const key=document.getElementById('keyInput').value.trim();
-  let loggedIn=false;
-
-  // Try Supabase email/password first
-  if(email&&pwd){
-    try{
-      const r=await fetch(`${API}/api/auth/token`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password: pwd })
-      });
-      const j=await r.json().catch(()=>({}));
-      if(r.ok && j.id_token){
-        sessionStorage.setItem('skyfit_token', j.id_token||j.token||'');
-        loggedIn=true;
-      }else{
-        throw new Error(j.error||'Supabase auth failed');
-      }
-    }catch(e){
-      // Supabase auth failed — fall through to key login
-    }
-  }
-
-  // Fallback: Admin key login
-  if(!loggedIn&&key){
-    try{
-      const r=await fetch(`${API}/api/admin/check`,{headers:{'x-admin-key':key}});
-      const j=await r.json().catch(()=>({}));
-      if(r.ok){
-        sessionStorage.setItem('skyfit_token',''); // clear Supabase token
-        sessionStorage.setItem('skyfit_admin_key', key); // store key for headers/auto-login
-        ADMIN_KEY=key;
-        showDash();
-        return;
-      }
-    }catch(e){}
-  }
-
-  if(!loggedIn){
-    document.getElementById('loginErr').textContent=(!email||!pwd?'Enter email & password or key':'Invalid credentials');
-    document.getElementById('loginErr').style.display='block';
-  }
-}
-function logout(){ sessionStorage.removeItem('skyfit_token'); ADMIN_KEY=''; document.getElementById('dashView').style.display='none'; document.getElementById('loginView').style.display='block'; document.getElementById('logoutBtn').style.display='none'; }
-function showDash(){
-  document.getElementById('loginView').style.display='none';
-  document.getElementById('dashView').style.display='block';
-  document.getElementById('logoutBtn').style.display='inline-flex';
-  loadAll();
-}
-async function loadAll(){
-  try{
-    const [s,c,p,t] = await Promise.all([
-      fetch(API+'/api/admin/stats',{headers:headers()}).then(r=>r.json()),
-      fetch(API+'/api/admin/clients',{headers:headers()}).then(r=>r.json()),
-      fetch(API+'/api/plans').then(r=>r.json()),
-      fetch(API+'/api/trainers').then(r=>r.json()),
-    ]);
-    if(s.error) throw new Error(s.error);
-    PLANS=p; TRAINERS=t; CLIENTS=Array.isArray(c)?c:[];
-    document.getElementById('sTotal').textContent=s.total;
-    document.getElementById('sActive').textContent=s.active;
-    document.getElementById('sSoon').textContent=s.expiringSoon;
-    document.getElementById('sRev').textContent='₹'+Number(s.revenue).toLocaleString('en-IN');
-    populateSelects();
-    renderTable();
-  }catch(e){
-    if(String(e.message).includes('Unauthorized')){ toast('Session expired — login again'); logout(); }
-    else toast(e.message||'Load failed');
-  }
-}
-function populateSelects(){
-  // plan select
-  const sel=document.getElementById('cPlan'); sel.innerHTML='';
-  for(const cat of Object.values(PLANS)){
-    const og=document.createElement('optgroup'); og.label=cat.label;
-    cat.plans.forEach(pl=>{ const o=document.createElement('option'); o.value=pl.id; o.textContent=`${pl.name} — ${pl.durationLabel} (₹${pl.price.toLocaleString('en-IN')})`; og.appendChild(o); });
-    sel.appendChild(og);
-  }
-  // trainer selects
-  const tSel=document.getElementById('cTrainer'); tSel.innerHTML='<option value="">-- No trainer --</option>';
-  const fT=document.getElementById('fTrainer'); const curF=fT.value; fT.innerHTML='<option value="all">All trainers</option><option value="none">No trainer</option>';
-  TRAINERS.forEach(tr=>{ const o=document.createElement('option'); o.value=tr.id; o.textContent=tr.name; tSel.appendChild(o.cloneNode(true)); const o2=o.cloneNode(true); fT.appendChild(o2); });
-  if(curF) fT.value=curF;
-  // default start date
-  if(!document.getElementById('cStart').value) document.getElementById('cStart').value=todayISO();
-  updateExpiryHint();
-  document.getElementById('cPlan').onchange=updateExpiryHint;
-  document.getElementById('cStart').onchange=updateExpiryHint;
-}
-function updateExpiryHint(){
-  const pid=document.getElementById('cPlan').value, sd=document.getElementById('cStart').value;
-  if(!pid||!sd){ document.getElementById('expiryHint').textContent=''; return; }
-  let found=null; for(const cat of Object.values(PLANS)){ const p=cat.plans.find(x=>x.id===pid); if(p) found=p; }
-  if(!found) return;
-  const d=new Date(sd); d.setHours(12,0,0,0); d.setDate(d.getDate()+found.durationDays);
-  const exp=d.toISOString().split('T')[0];
-  const days=Math.ceil((new Date(exp)-new Date(new Date().toISOString().split('T')[0]))/86400000);
-  document.getElementById('expiryHint').innerHTML=`<i class="fa-regular fa-calendar"></i> Expires: <b>${exp}</b> • ${found.durationDays} days • <b style="color:${days>=0?'var(--success)':'#ef4444'}">${days>=0?days+' days left':'expired'}</b>`;
-}
-function renderTable(){
-  const q=(document.getElementById('q').value||'').toLowerCase();
-  const fs=document.getElementById('fStatus').value;
-  const ft=document.getElementById('fTrainer').value;
-  let list=[...CLIENTS];
-  if(q) list=list.filter(m=> [m.member.name,m.member.email,m.member.phone,m.planName,m.categoryLabel,m.id].join(' ').toLowerCase().includes(q));
-  if(fs==='active') list=list.filter(m=>m.isActive);
-  else if(fs==='expired') list=list.filter(m=>!m.isActive);
-  else if(fs==='soon') list=list.filter(m=>m.isActive && m.daysRemaining<=7);
-  if(ft!=='all'){
-    if(ft==='none') list=list.filter(m=>!m.trainer);
-    else list=list.filter(m=>m.trainer && m.trainer.id===ft);
-  }
-  const tb=document.getElementById('tbody');
-  if(!list.length){ tb.innerHTML='<tr><td colspan="8" class="empty">No clients match.</td></tr>'; return; }
-  tb.innerHTML=list.map(m=>{
-    const badge = !m.isActive ? '<span class="badge badge-expired">Expired</span>' : (m.daysRemaining<=7 ? `<span class="badge badge-soon">${m.daysRemaining}d left</span>` : `<span class="badge badge-active">${m.daysRemaining}d left</span>`);
-    return `<tr>
-      <td><b>${esc(m.member.name)}</b><br><small style="color:var(--muted)">${esc(m.id)}</small>${m.notes?`<br><small style="color:var(--muted)"><i class="fa-regular fa-note-sticky"></i> ${esc(m.notes)}</small>`:''}</td>
-      <td><span class="truncate" title="${esc(m.member.email)}">${esc(m.member.email)}</span><br><small>${esc(m.member.phone)}</small></td>
-      <td><b>${esc(m.planName)}</b><br><small style="color:var(--muted)">${esc(m.categoryLabel)} • ${esc(m.durationLabel)}</small></td>
-      <td>${m.trainer?`<b>${esc(m.trainer.name)}</b><br><small style="color:var(--muted)">${esc(m.trainer.role||'')}</small>`:'<small style="color:var(--muted)">—</small>'}</td>
-      <td><small>${esc(m.startDate)} → <b>${esc(m.expires)}</b></small></td>
-      <td>${badge}</td>
-      <td>₹${Number(m.price).toLocaleString('en-IN')}</td>
-      <td style="text-align:right;white-space:nowrap"><button class="btn btn-ghost btn-sm" onclick="openEdit('${m.id}')"><i class="fa-solid fa-pen"></i></button> <button class="btn btn-ghost btn-sm" style="color:#ef4444;border-color:rgba(239,68,68,.3)" onclick="delClient('${m.id}')"><i class="fa-solid fa-trash"></i></button></td>
-    </tr>`;
-  }).join('');
-}
-function esc(s){ return String(s||'').replace(/[&<>"']/g,c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
-
-function openAdd(){
-  editingId=null;
-  document.getElementById('modalTitle').innerHTML='<i class="fa-solid fa-user-plus" style="color:var(--primary)"></i> Add client';
-  document.getElementById('saveBtn').textContent='Add client';
-  document.getElementById('cName').value=''; document.getElementById('cEmail').value=''; document.getElementById('cPhone').value='';
-  document.getElementById('cNotes').value=''; document.getElementById('cPay').value='cash';
-  document.getElementById('cTrainer').value=''; document.getElementById('cStart').value=todayISO();
-  document.getElementById('formErr').style.display='none';
-  updateExpiryHint();
-  document.getElementById('clientModal').classList.add('open');
-}
-function openEdit(id){
-  const m=CLIENTS.find(x=>x.id===id); if(!m) return;
-  editingId=id;
-  document.getElementById('modalTitle').innerHTML='<i class="fa-solid fa-pen" style="color:var(--primary)"></i> Edit client';
-  document.getElementById('saveBtn').textContent='Save changes';
-  document.getElementById('cName').value=m.member.name;
-  document.getElementById('cEmail').value=m.member.email;
-  document.getElementById('cPhone').value=m.member.phone;
-  document.getElementById('cPlan').value=m.planId;
-  document.getElementById('cTrainer').value=m.trainer?m.trainer.id:'';
-  document.getElementById('cStart').value=m.startDate;
-  document.getElementById('cNotes').value=m.notes||'';
-  document.getElementById('cPay').value=m.payment?m.payment.method:'';
-  document.getElementById('formErr').style.display='none';
-  updateExpiryHint();
-  document.getElementById('clientModal').classList.add('open');
-}
-function closeModal(){ document.getElementById('clientModal').classList.remove('open'); }
-
-async function saveClient(){
-  const name=document.getElementById('cName').value.trim();
-  const email=document.getElementById('cEmail').value.trim();
-  const phone=document.getElementById('cPhone').value.trim();
-  const planId=document.getElementById('cPlan').value;
-  const trainerId=document.getElementById('cTrainer').value||null;
-  const startDate=document.getElementById('cStart').value;
-  const paymentMethod=document.getElementById('cPay').value||null;
-  const notes=document.getElementById('cNotes').value.trim();
-  const errEl=document.getElementById('formErr');
-  if(!name||!email||!phone||!planId||!startDate){ errEl.textContent='All fields except notes/trainer are required.'; errEl.style.display='block'; return; }
-  errEl.style.display='none';
-  const btn=document.getElementById('saveBtn'); btn.disabled=true; btn.textContent='Saving...';
-  try{
-    const url = editingId ? `${API}/api/admin/clients/${editingId}` : `${API}/api/admin/clients`;
-    const method = editingId ? 'PUT' : 'POST';
-    const body = editingId ? { name,email,phone,planId,startDate,trainerId,notes } : { name,email,phone,planId,startDate,trainerId,paymentMethod,notes };
-    const r=await fetch(url,{ method, headers:headers(), body: JSON.stringify(body) });
-    const j=await r.json().catch(()=>({}));
-    if(!r.ok) throw new Error(j.error||'Save failed');
-    toast(editingId?'Client updated':'Client added ✓');
-    closeModal(); await loadAll();
-  }catch(e){ errEl.textContent=e.message; errEl.style.display='block'; }
-  finally{ btn.disabled=false; btn.textContent=editingId?'Save changes':'Add client'; }
-}
-async function delClient(id){
-  if(!confirm('Delete this client? This cannot be undone.')) return;
-  const r=await fetch(API+'/api/admin/clients/'+id,{ method:'DELETE', headers:headers() });
-  const j=await r.json().catch(()=>({}));
-  if(!r.ok){ toast(j.error||'Delete failed'); return; }
-  toast('Deleted'); loadAll();
-}
-
-// auto-login if token present
-(async()=>{
-  const token = sessionStorage.getItem('skyfit_token');
-  if(!token){ return; }
-  try{ 
-    const r=await fetch(API+'/api/admin/check',{headers:headers()}); 
-    if(r.ok) showDash(); 
-    else document.getElementById('loginView').style.display='block';
-  }catch(e){}
-})();
-</script>
+<script src="admin.js"></script>
 </body>
 </html>

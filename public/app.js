@@ -84,6 +84,50 @@ function findPlan(id){
 }
 function findTrainer(id){ return TRAINERS.find(t=>t.id===id) || null; }
 
+// ---------------- Supplement Marketplace ----------------
+let SUPPLEMENTS = [];
+let supFilter = 'all';
+const SUP_LABELS = {
+  pre_workout:'Pre-Workouts', whey:'Whey Protein', creatine:'Creatine',
+  mass_gainer:'Mass Gainer', vitamins:'Vitamins', other:'Other'
+};
+async function loadSupplements(){
+  try{
+    const r = await fetch(API+'/api/supplements');
+    if(!r.ok) throw 0;
+    SUPPLEMENTS = await r.json();
+  }catch(e){ SUPPLEMENTS = []; }
+  renderSupplements();
+}
+function renderSupplements(){
+  const mount = document.getElementById('shopMount');
+  if(!mount) return;
+  const list = supFilter==='all' ? SUPPLEMENTS : SUPPLEMENTS.filter(s=>s.category===supFilter);
+  if(!list.length){
+    mount.innerHTML = '<p class="muted" style="text-align:center;padding:24px 0">Products coming soon — check back for our supplement range.</p>';
+  } else {
+    mount.innerHTML = `<div class="plans-grid">${list.map(s=>{
+      const ph = (name)=>`data:image/svg+xml;utf8,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="300" height="150" viewBox="0 0 300 150"><rect width="100%" height="100%" fill="#1a1a1a"/><text x="50%" y="50%" font-family="Inter,Arial" font-size="40" font-weight="800" fill="rgba(255,255,255,.7)" text-anchor="middle" dominant-baseline="middle">${encodeURIComponent(String(name||'SUP').slice(0,2).toUpperCase())}</text></svg>`)}`;
+      const src = s.image_url ? s.image_url : ph(s.name||s.brand);
+      const img = `<img src="${src}" alt="${(s.name||'').replace(/"/g,'&quot;')}" style="width:100%;height:150px;object-fit:cover;border-radius:12px;margin-bottom:10px;background:#222" onerror="this.onerror=null;this.src='${ph(s.name||s.brand)}'">`;
+      const save = s.mrp && Number(s.mrp)>Number(s.price) ? `<span class="badge" style="position:absolute;top:10px;right:10px;background:var(--accent);color:#fff;font-size:11px;padding:3px 8px;border-radius:999px">Save ${Math.round((1-s.price/s.mrp)*100)}%</span>` : '';
+      return `<div class="p-card" style="position:relative;text-align:left">
+        ${save}
+        ${img}
+        <div class="p-head" style="text-align:left"><p style="color:var(--accent)">${s.brand||''} • <span class="muted" style="color:#999">${SUP_LABELS[s.category]||s.category||''}</span></p><h3 style="text-transform:none">${s.name}</h3>${s.flavor?`<p class="muted" style="font-size:13px">${s.flavor}${s.size? ' • '+s.size:''}</p>`:''}</div>
+        <div class="p-price" style="flex-wrap:wrap;gap:8px">
+          <span style="font-size:24px">${fmtINR(s.price)}</span>
+          ${s.mrp&&Number(s.mrp)>Number(s.price)?`<span style="text-decoration:line-through;color:#999;font-size:15px">${fmtINR(s.mrp)}</span>`:''}
+        </div>
+        ${s.rating!=null?`<p style="margin:6px 0 0;color:#f5c842;font-size:14px">★ ${Number(s.rating).toFixed(1)}</p>`:''}
+        ${s.stock>0?`<button class="btn btn-primary btn-block" style="margin-top:12px" onclick="toast('Added to cart — coming soon')">Add to Cart <i class="fa-solid fa-cart-plus"></i></button>`:`<button class="btn btn-block" style="margin-top:12px;background:#333;color:#aaa;border:none;cursor:not-allowed" disabled>Out of stock</button>`}
+      </div>`;
+    }).join('')}</div>`;
+  }
+  document.querySelectorAll('#supFilters .btn').forEach(b=> b.classList.toggle('active', b.dataset.filter===supFilter));
+}
+function filterSupplements(tag){ supFilter = tag; renderSupplements(); }
+
 function renderPlans(tab){
   const mount=document.getElementById('plansMount');
   const cat = PLANS[tab];
@@ -257,7 +301,7 @@ async function renderDashboard(){
   if(email){
     try{
       const r=await fetch(API+`/api/memberships/by-email/${encodeURIComponent(email)}`);
-      if(r.ok){ const list=await r.json(); if(list.length) membership=list[0]; }
+      if(r.ok){ const list=await r.json(); if(list.length) membership=(list.find(x=>x.status==='ACTIVE') || null); }
     }catch(e){}
   }
   activeMembership = membership;
@@ -571,4 +615,5 @@ document.getElementById('mStartDate')?.addEventListener('change', updateExpiryPr
 document.getElementById('mTrainerSelect')?.addEventListener('change', ()=>{ selectedTrainerId=document.getElementById('mTrainerSelect').value; if(selectedTrainerId) localStorage.setItem('skyfit_trainer', selectedTrainerId); else localStorage.removeItem('skyfit_trainer'); updateTrainerBanner(); renderTrainers(trainerFilter); updateSelectedPlanBox(); updatePaySummary(); });
 loadPlans().then(()=>{ renderDashboard(); });
 loadTrainers();
+loadSupplements();
 document.addEventListener('keydown', e=>{ if(e.key==='Escape'){ closeCheckout(); closeTrainerModal(); }});

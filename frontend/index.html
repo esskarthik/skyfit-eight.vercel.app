@@ -28,6 +28,7 @@
       <a href="#trainers">Trainers</a>
       <a href="#transformation">Transformation</a>
       <a href="#memberships">Memberships</a>
+      <a href="#shop">Marketplace</a>
       <a href="#progress">Progress</a>
       <a href="#contact">Contact</a>
     </nav>
@@ -224,6 +225,26 @@
   </div>
 </section>
 
+<!-- SUPPLEMENT MARKETPLACE -->
+<section id="shop" class="section section-dark">
+  <div class="container">
+    <div class="section-head">
+      <h2><span>SUPPLEMENT</span> MARKETPLACE</h2>
+      <p>Pre-workouts • Whey protein • Creatine • Mass gainers — fuel your results, delivered.</p>
+    </div>
+    <div class="trainer-filters" id="supFilters">
+      <button class="btn btn-ghost active" data-filter="all" onclick="filterSupplements('all')">All</button>
+      <button class="btn btn-ghost" data-filter="pre_workout" onclick="filterSupplements('pre_workout')">Pre-Workouts</button>
+      <button class="btn btn-ghost" data-filter="whey" onclick="filterSupplements('whey')">Whey Protein</button>
+      <button class="btn btn-ghost" data-filter="creatine" onclick="filterSupplements('creatine')">Creatine</button>
+      <button class="btn btn-ghost" data-filter="mass_gainer" onclick="filterSupplements('mass_gainer')">Mass Gainer</button>
+    </div>
+    <div class="shop-grid" id="shopMount">
+      <!-- injected by JS -->
+    </div>
+  </div>
+</section>
+
 <!-- PROGRESS / DASHBOARD -->
 <section id="progress" class="section">
   <div class="container">
@@ -369,6 +390,6 @@
 <div id="toast" class="toast"></div>
 
 <script src="app.js"></script>
-<script>if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');</script>
+<script>if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(r => r.update()).catch(()=>{});</script>
 </body>
 </html>

@@ -5,6 +5,9 @@ backend/node_modules/
 # env
 .env
 backend/.env
+.env.local
+.env.*.local
+*.local
 
 # db
 backend/db.json
