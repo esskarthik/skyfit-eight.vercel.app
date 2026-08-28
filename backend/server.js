@@ -1597,11 +1597,17 @@ app.get('/api/admin/reports/export', requirePerm('reports.view'), (req, res) => 
 });
 
 // ---------------------------------------------------------------------------
-// SPA fallback
+// SPA fallback (also serves the admin app at /admin with clean URLs)
 // ---------------------------------------------------------------------------
 app.get('*', (req, res) => {
-  const candidates = [frontendPath, publicPath].map(p => path.join(p, 'index.html'));
-  for (const c of candidates) { if (fs.existsSync(c)) return res.sendFile(c); }
+  const isAdmin = /^\/admin(\/|$)/.test(req.path);
+  const names = isAdmin ? ['admin.html'] : ['index.html'];
+  for (const dir of [frontendPath, publicPath]) {
+    for (const n of names) {
+      const c = path.join(dir, n);
+      if (fs.existsSync(c)) return res.sendFile(c);
+    }
+  }
   res.status(404).send('Frontend not found');
 });
 
