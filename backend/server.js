@@ -23,16 +23,24 @@ if (fs.existsSync(frontendPath)) app.use(express.static(frontendPath));
 if (fs.existsSync(publicPath)) app.use(express.static(publicPath));
 
 // Supabase (service role — used server-side only; NEVER sent to the browser)
-const supabase = createClient(
-  process.env.SUPABASE_URL || '',
-  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || ''
-);
+// If the env vars are unset (e.g. a host that hasn't had them configured yet),
+// createClient('') would throw at require time and take down the whole API.
+// We use a placeholder so the module loads, then guard real requests on
+// HAS_SUPABASE and return a clear "server not configured" error instead of a
+// confusing 404 / "invalid credentials".
+const HAS_SUPABASE = !!(process.env.SUPABASE_URL && (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY));
+const _SUPABASE_URL = process.env.SUPABASE_URL || 'https://placeholder.supabase.co';
+const _SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || 'placeholder-key';
+const supabase = createClient(_SUPABASE_URL, _SUPABASE_KEY);
 // Dedicated auth client so user sessions from /api/auth/token never attach the
 // signed-in user's JWT to the shared data client (which would trigger RLS on writes).
-const authSupabase = createClient(
-  process.env.SUPABASE_URL || '',
-  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || ''
-);
+const authSupabase = createClient(_SUPABASE_URL, _SUPABASE_KEY);
+// Sentinal so any endpoint that needs Supabase can short-circuit with a clear message.
+function requireSupabaseConfigured(res) {
+  if (HAS_SUPABASE) return true;
+  res.status(503).json({ error: 'Server is not configured: set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in the host environment (Vercel: Project -> Settings -> Environment Variables), then redeploy.' });
+  return false;
+}
 
 // Ensure a public Storage bucket exists before uploading. Uses the admin
 // (service-role) client so bucket creation works even when RLS would otherwise
@@ -387,6 +395,7 @@ app.delete('/api/memberships/:id', wrap(async (req, res) => {
 app.post('/api/auth/token', async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) return res.status(400).json({ error: 'email and password required' });
+  if (!requireSupabaseConfigured(res)) return;
   try {
     const { data, error } = await authSupabase.auth.signInWithPassword({ email, password });
     if (error) return res.status(401).json({ error: error.message });
@@ -405,6 +414,7 @@ app.post('/api/auth/token', async (req, res) => {
 app.post('/api/auth/refresh', wrap(async (req, res) => {
   const { refresh_token } = req.body || {};
   if (!refresh_token) return res.status(400).json({ error: 'refresh_token required' });
+  if (!requireSupabaseConfigured(res)) return;
   try {
     const { data, error } = await authSupabase.auth.refreshSession({ refresh_token });
     if (error || !data || !data.session) return res.status(401).json({ error: error ? error.message : 'Invalid refresh token' });
