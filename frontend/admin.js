@@ -115,6 +115,17 @@
     $('#appView').style.display = 'none';
     $('#loginView').style.display = 'grid';
   }
+  window.togglePwd = () => {
+    const el = $('#loginPwd'); const isPwd = el.type === 'password';
+    el.type = isPwd ? 'text' : 'password';
+    const ic = $('#pwdToggle').querySelector('i'); ic.className = isPwd ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye';
+    $('#loginPwd').focus();
+  };
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && $('#loginView').style.display !== 'none' && (e.target.id === 'loginEmail' || e.target.id === 'loginPwd')) { e.preventDefault(); doLogin(); }
+    if (e.key === 'Escape' && $('#modalOverlay').classList.contains('open')) closeModal();
+    if (e.key === 'Escape' && $('#confirmOverlay').classList.contains('open')) closeConfirm();
+  });
 
   async function initApp() {
     let actor = null;
@@ -235,6 +246,23 @@
     return Object.keys(groups).map(g => `<optgroup label="${esc(g)}">${groups[g].map(o => `<option value="${o.v}">${o.t}</option>`).join('')}</optgroup>`).join('');
   }
 
+  // Highlight any empty required fields in the open modal and return true if all pass.
+  function validateRequired(ids) {
+    let ok = true;
+    (ids || []).forEach(id => {
+      const el = $(id); if (!el) return;
+      const empty = !String(el.value || '').trim();
+      el.classList.toggle('invalid', empty);
+      ok = ok && !empty;
+    });
+    return ok;
+  }
+  // Clear invalid styling when a field is edited.
+  function bindInvalidClear(rootSel) {
+    const scope = rootSel ? $(rootSel) || document : document;
+    (scope === window ? document : scope).addEventListener('input', (e) => { if (e.target && e.target.classList) e.target.classList.remove('invalid'); });
+  }
+
   // ---------------- badge helper ----------------
   function statusBadge(s, dr) {
     const map = {
@@ -259,6 +287,23 @@
     return map[s] || `<span class="badge badge-pending">${esc(s)}</span>`;
   }
   function paymentBadge(s) { if (s === 'PENDING') return statusBadge('PENDING2'); if (s === 'PAID') return statusBadge('PAID'); if (s === 'FAILED') return statusBadge('FAILED'); if (s === 'REFUNDED') return statusBadge('REFUNDED'); if (s === 'CANCELLED') return statusBadge('CANCELLED'); return `<span class="badge badge-pending">${esc(s)}</span>`; }
+
+  // ---------------- shared list/toolbar helpers ----------------
+  // Consistent search toolbar used across list views.
+  function searchBox(placeholder, view, params) {
+    const q = params.q || '';
+    const extra = Object.keys(params).filter(k => k !== 'q' && k !== 'page').map(k => k + '=' + encodeURIComponent(params[k] || '')).join('&');
+    const suffix = extra ? " + '&" + extra + "'" : '';
+    return `<div class="search"><i class="fa-solid fa-magnifying-glass" style="color:var(--muted)"></i><input placeholder="${placeholder}" value="${esc(q)}" onkeydown="if(event.key==='Enter'){location.hash='#/${view}?q='+encodeURIComponent(this.value)${suffix}}"></div>`;
+  }
+  // Role-filter chips that preserve the current search term.
+  function filterChips(view, chips, status) {
+    return `<div class="filter-row">${chips.map(c => `<button class="chip ${status === c[0] ? 'active' : ''}" onclick="location.hash='#/${view}${c[0] ? '?status=' + c[0] : ''}'">${c[1]}</button>`).join('')}</div>`;
+  }
+  // Consistent empty state block.
+  function emptyState(icon, title, sub) {
+    return `<div class="empty"><i class="${icon}"></i><b>${esc(title)}</b>${sub ? `<div class="muted">${esc(sub)}</div>` : ''}</div>`;
+  }
 
   // ---------------- pagination ----------------
   function pagination(view, page, total, pageSize) {
@@ -301,7 +346,7 @@
     const view = seg[0] || 'dashboard';
     highlightNav();
     const p = $('#pageTitle'); p.textContent = view.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-    $('#sidebar').classList.remove('open');
+    window.toggleSidebar(false);
     try {
       switch (view) {
         case 'dashboard': await viewDashboard(); break;
@@ -353,7 +398,18 @@
     const d = await api('/api/admin/dashboard');
     const k = d.kpis;
     const statCard = (label, val, sub, cls, icon) => `<div class="stat ${cls || ''}"><small>${label}</small><b>${esc(val)}</b><span><i class="${icon || 'fa-solid fa-circle-info'}"></i> ${esc(sub || '')}</span></div>`;
+    const revenue = [['Today', d.revenue.today], ['Week', d.revenue.week], ['Month', d.revenue.month], ['Year', d.revenue.year]];
+    const maxRev = Math.max(1, ...revenue.map(r => r[1]));
+    const bars = revenue.map(([l, v]) => `<div class="bar-col"><span class="bar" style="height:${Math.max(3, Math.round((v / maxRev) * 120))}px;background:linear-gradient(180deg,var(--primary),var(--secondary))" title="${fmtINR(v)}"></span><span class="lbl">${l}</span><span class="lbl" style="font-weight:700;color:var(--text)">${v ? '₹' + Math.round(v / 1000) + 'k' : '—'}</span></div>`).join('');
+    const quickActions = [
+      { h: "memberForm()", i: 'fa-solid fa-user-plus', t: 'Add Member' },
+      { h: "location.hash='#/members?status=expiring'", i: 'fa-regular fa-clock', t: 'Expiring' },
+      { h: "location.hash='#/reports'", i: 'fa-solid fa-chart-pie', t: 'Reports' },
+      { h: "planForm()", i: 'fa-solid fa-rectangle-list', t: 'New Plan' }
+    ].filter(a => a.h.includes('memberForm') ? can('STAFF') : a.h.includes('planForm') ? can('MANAGER') : true).map(a => `<button class="quick-btn" onclick="${a.h}"><i class="${a.i}"></i>${a.t}</button>`).join('');
     $('#content').innerHTML = `
+      <div class="quick-grid">${quickActions}</div>
+
       <div class="stats">
         ${statCard('Total Members', k.totalMembers, 'all registered', '', 'fa-solid fa-users')}
         ${statCard('Active Members', k.activeMembers, 'paid + active', 'green', 'fa-solid fa-user-check')}
@@ -373,13 +429,8 @@
             <li><span>Currently Inside</span><b style="color:var(--primary)">${d.attendance.currentlyInside}</b></li>
           </ul>
         </div>
-        <div class="card"><h3><i class="fa-solid fa-indian-rupee-sign" style="color:var(--primary)"></i> Revenue Overview</h3>
-          <ul class="plain">
-            <li><span>Today</span><b>${fmtINR(d.revenue.today)}</b></li>
-            <li><span>This Week</span><b>${fmtINR(d.revenue.week)}</b></li>
-            <li><span>This Month</span><b>${fmtINR(d.revenue.month)}</b></li>
-            <li><span>This Year</span><b>${fmtINR(d.revenue.year)}</b></li>
-          </ul>
+        <div class="card"><h3><i class="fa-solid fa-indian-rupee-sign" style="color:var(--primary)"></i> Revenue</h3>
+          <div class="bar-chart">${bars}</div>
         </div>
       </div>
 
@@ -412,10 +463,10 @@
     const chips = [['', 'All'], ['active', 'Active'], ['expiring', 'Expiring Soon'], ['expired', 'Expired'], ['pending', 'Pending'], ['no_membership', 'No Membership'], ['archived', 'Archived']];
     $('#content').innerHTML = `
       <div class="toolbar">
-        <div class="search"><i class="fa-solid fa-magnifying-glass" style="color:var(--muted)"></i><input id="mSearch" placeholder="Search name, phone, email…" value="${esc(q.q || '')}" onkeydown="if(event.key==='Enter'){location.hash='#/members?q='+encodeURIComponent(this.value)+'&status=${status}'}"></div>
+        ${searchBox('Search name, phone, email…', 'members', q)}
         ${can('STAFF') ? `<button class="btn btn-primary" onclick="memberForm()"><i class="fa-solid fa-user-plus"></i> Add member</button>` : ''}
       </div>
-      <div class="filter-row">${chips.map(c => `<button class="chip ${status === c[0] ? 'active' : ''}" onclick="location.hash='#/members${c[0] ? '?status=' + c[0] : ''}'">${c[1]}</button>`).join('')}</div>
+      ${filterChips('members', chips, status)}
       <div class="table-wrap"><table><thead><tr><th>Member</th><th>Phone</th><th>Membership</th><th>Status</th><th>Trainer</th><th>Expiry</th><th>Last Visit</th><th>Joined</th><th></th></tr></thead>
       <tbody>${res.data.map(m => `
         <tr>
@@ -457,7 +508,7 @@
   };
   window.saveMember = async function (email) {
     const name = $('#fName').value.trim(), emailV = $('#fEmail').value.trim(), phone = $('#fPhone').value.trim(), planId = $('#fPlan').value, trainerId = $('#fTrainer').value, startDate = $('#fStart').value, notes = $('#fNotes').value.trim();
-    if (!name || !emailV || !phone || !planId || !startDate) { toast('Fill required fields', true); return; }
+    if (!name || !emailV || !phone || !planId || !startDate) { if (!validateRequired(['#fName', '#fEmail', '#fPhone', '#fPlan', '#fStart'])) { toast('Complete the highlighted fields', true); } else { toast('Fill required fields', true); } return; }
     const btn = $('#saveMemberBtn'); btn.disabled = true;
     try {
       if (email) { await api('/api/admin/members/' + email, { method: 'PUT', body: JSON.stringify({ name, phone, trainerId: trainerId || null, notes }) }); toast('Member updated ✓'); }
@@ -534,8 +585,8 @@
     const res = await api(`/api/admin/memberships?q=${encodeURIComponent(q.q || '')}&status=${status}&page=${page}&pageSize=15`);
     const chips = [['', 'All'], ['active', 'Active'], ['pending', 'Pending'], ['expired', 'Expired'], ['suspended', 'Suspended'], ['cancelled', 'Cancelled']];
     $('#content').innerHTML = `
-      <div class="toolbar"><div class="search"><i class="fa-solid fa-magnifying-glass" style="color:var(--muted)"></i><input placeholder="Search member, plan, ID…" value="${esc(q.q || '')}" onkeydown="if(event.key==='Enter'){location.hash='#/memberships?q='+encodeURIComponent(this.value)+'&status=${status}'}"></div></div>
-      <div class="filter-row">${chips.map(c => `<button class="chip ${status === c[0] ? 'active' : ''}" onclick="location.hash='#/memberships${c[0] ? '?status=' + c[0] : ''}'">${c[1]}</button>`).join('')}</div>
+      <div class="toolbar">${searchBox('Search member, plan, ID…', 'memberships', q)}</div>
+      ${filterChips('memberships', chips, status)}
       <div class="table-wrap"><table><thead><tr><th>Member</th><th>Plan</th><th>Start</th><th>Expiry</th><th>Amount</th><th>Status</th><th></th></tr></thead>
       <tbody>${res.data.map(m => `<tr><td><div class="member-cell"><span class="avatar">${initials(m.member.name)}</span><div><b>${esc(m.member.name)}</b><br><small class="muted">${esc(m.member.email)}</small></div></div></td><td>${esc(m.planName)}</td><td>${fmtD(m.startDate)}</td><td>${fmtD(m.expires)}</td><td>${fmtINR(m.price)}</td><td>${statusBadge(m.status, m.daysRemaining)}</td><td><div class="row-actions"><button class="btn btn-sm btn-ghost" onclick="location.hash='#/membership/${m.id}'">View</button>${can('MANAGER') ? `<button class="btn btn-ghost btn-sm" style="color:#ef4444" onclick="deleteMembership('${m.id}')"><i class="fa-solid fa-trash"></i></button>` : ''}</div></td></tr>`).join('') || '<tr><td colspan="7" class="empty">No memberships found</td></tr>'}</tbody></table></div>
       ${pagination('memberships', page, res.total, 15)}`;
@@ -563,12 +614,23 @@
   };
   window.deleteMembership = (id) => confirmBox('Delete membership?', 'The membership will be cancelled and removed from active access. Historical records are preserved.', async () => { try { await api('/api/admin/memberships/' + id, { method: 'DELETE' }); toast('Membership deleted'); route(); } catch (e) { toast(e.message, true); } }, 'Delete membership');
   window.renewForm = async (id) => {
+    const d = await api('/api/admin/memberships/' + id);
+    const m = d.membership;
     const plans = (await api('/api/admin/plans')).filter(p => p.is_active !== false);
-    openModal(`<h3>Renew membership</h3><div class="form-grid">${select('rPlan', 'Plan', [{ v: '', t: '-- Same plan --' }, ...plans.map(p => ({ v: p.id, t: p.name + ' • ' + fmtINR(p.price) }))], '', false)}${field('rStart', 'Start date', todayISO(), '', 'date', true)}</div><div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="doRenew('${id}')">Renew</button></div>`);
+    openModal(`<h3>Renew membership</h3>
+      <div class="renew-info">
+        <div><small>Member</small><b>${esc(m.member.name)}</b></div>
+        <div><small>Current plan</small><b>${esc(m.planName)} · ${fmtINR(m.price)}</b></div>
+        <div><small>Expires</small><b>${fmtD(m.expires)}</b></div>
+      </div>
+      <div class="form-grid">${select('rPlan', 'Plan', [{ v: '', t: '-- Same plan (' + esc(m.planName) + ') --' }, ...plans.map(p => ({ v: p.id, t: p.name + ' • ' + fmtINR(p.price) + (p.id === m.planId ? ' (current)' : '') }))], '', false)}${field('rStart', 'Start date', todayISO(), '', 'date', true)}</div>
+      <div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="doRenew('${id}')"><i class="fa-solid fa-rotate-right"></i> Renew</button></div>`);
   };
   window.doRenew = async (id) => {
+    if (!validateRequired(['#rStart'])) { toast('Pick a start date', true); return; }
     const planId = $('#rPlan').value || null, startDate = $('#rStart').value;
-    try { await api(`/api/admin/memberships/${id}/renew`, { method: 'POST', body: JSON.stringify({ planId, startDate }) }); toast('Membership renewed ✓'); closeModal(); route(); } catch (e) { toast(e.message, true); }
+    const btn = $('#modal .btn-primary'); if (btn) btn.disabled = true;
+    try { await api(`/api/admin/memberships/${id}/renew`, { method: 'POST', body: JSON.stringify({ planId, startDate }) }); toast('Membership renewed ✓'); closeModal(); route(); } catch (e) { toast(e.message, true); if (btn) btn.disabled = false; }
   };
 
   // ---------------- PLANS ----------------
@@ -597,6 +659,7 @@
     </div><div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="savePlan('${p ? p.id : ''}')">Save</button></div>`);
   };
   window.savePlan = async (id) => {
+    if (!validateRequired(['#pName', '#pCat', '#pPrice', '#pDays'])) { toast('Complete the highlighted fields', true); return; }
     const payload = { name: $('#pName').value.trim(), category: $('#pCat').value, price: Number($('#pPrice').value), duration_days: Number($('#pDays').value), duration_label: $('#pLabel').value.trim() || null, tag: $('#pTag').value.trim() || null, save_text: $('#pSave').value.trim() || null, features: $('#pFeatures').value.split(',').map(x => x.trim()).filter(Boolean), active: $('#pActive').checked };
     try {
       if (id) await api('/api/admin/plans/' + id, { method: 'PUT', body: JSON.stringify(payload) });
@@ -613,8 +676,8 @@
     const res = await api(`/api/admin/payments?q=${encodeURIComponent(q.q || '')}&status=${status}&page=${page}&pageSize=15`);
     const chips = [['', 'All'], ['paid', 'Paid'], ['pending', 'Pending'], ['failed', 'Failed'], ['refunded', 'Refunded'], ['cancelled', 'Cancelled']];
     $('#content').innerHTML = `
-      <div class="toolbar"><div class="search"><i class="fa-solid fa-magnifying-glass" style="color:var(--muted)"></i><input placeholder="Search member, Razorpay order/payment, ID…" value="${esc(q.q || '')}" onkeydown="if(event.key==='Enter'){location.hash='#/payments?q='+encodeURIComponent(this.value)+'&status=${status}'}"></div></div>
-      <div class="filter-row">${chips.map(c => `<button class="chip ${status === c[0] ? 'active' : ''}" onclick="location.hash='#/payments${c[0] ? '?status=' + c[0] : ''}'">${c[1]}</button>`).join('')}</div>
+      <div class="toolbar">${searchBox('Search member, Razorpay order/payment, ID…', 'payments', q)}</div>
+      ${filterChips('payments', chips, status)}
       <div class="table-wrap"><table><thead><tr><th>ID</th><th>Member</th><th>Plan</th><th>Amount</th><th>Method</th><th>Razorpay</th><th>Status</th><th>Date</th><th></th></tr></thead>
       <tbody>${res.data.map(p => `<tr><td class="muted">${refShort('PAY', p.id)}</td><td><b>${esc(p.member_name || '—')}</b><br><small class="muted">${esc(p.member_email || '')}</small></td><td>${esc(p.plan_name || '—')}</td><td><b>${fmtINR(p.amount)}</b></td><td>${esc(p.payment_method || '—')}</td><td class="muted">${esc((p.razorpay_order_id || '').slice(0, 12) || '—')}</td><td>${paymentBadge(p.status)}</td><td class="muted">${fmtD(p.created_at)}</td><td><div class="row-actions"><button class="btn btn-sm btn-ghost" onclick="location.hash='#/payment/${p.id}'">View</button>${can('ADMIN') ? `<button class="btn btn-ghost btn-sm" style="color:#ef4444" onclick="deletePayment('${p.id}')"><i class="fa-solid fa-trash"></i></button>` : ''}</div></td></tr>`).join('') || '<tr><td colspan="9" class="empty">No payments found</td></tr>'}</tbody></table></div>
       ${pagination('payments', page, res.total, 15)}`;
@@ -729,7 +792,7 @@
       is_featured: $('#suFeat').value === 'true', sort_order: $('#suOrder').value ? Number($('#suOrder').value) : 0,
       description: $('#suDesc').value
     };
-    if (!payload.name) { toast('Name required', true); return; }
+    if (!payload.name) { if (!validateRequired(['#suName'])) toast('Complete the highlighted fields', true); else toast('Name required', true); return; }
     try { if (id) await api('/api/admin/supplements/' + id, { method: 'PUT', body: JSON.stringify(payload) }); else await api('/api/admin/supplements', { method: 'POST', body: JSON.stringify(payload) }); toast('Saved ✓'); closeModal(); route(); } catch (e) { toast(e.message, true); }
   };
   window.toggleSup = async (id, active) => { try { await api('/api/admin/supplements/' + id, { method: 'PUT', body: JSON.stringify({ is_active: !(active === true || active === 'true' || active === 1) }) }); route(); } catch (e) { toast(e.message, true); } };
@@ -769,7 +832,7 @@
   };
   window.saveTrainer = async (id) => {
     const payload = { id: id || $('#tId').value.trim(), name: $('#tName').value.trim(), photo: $('#tPhoto').value.trim() || null, specialization: $('#tSpec').value, speciality: $('#tSpec').value ? [$('#tSpec').value] : [], exp: $('#tExp').value, experience: $('#tExp').value, bio: $('#tBio').value, status: 'active' };
-    if (!payload.id || !payload.name) { toast('ID and name required', true); return; }
+    if (!payload.id || !payload.name) { if (!validateRequired(['#tId', '#tName'])) toast('Complete the highlighted fields', true); else toast('ID and name required', true); return; }
     try { if (id) await api('/api/admin/trainers/' + id, { method: 'PUT', body: JSON.stringify(payload) }); else await api('/api/admin/trainers', { method: 'POST', body: JSON.stringify(payload) }); toast('Saved ✓'); closeModal(); route(); } catch (e) { toast(e.message, true); }
   };
   window.toggleTrainer = (id, act) => {
@@ -807,7 +870,7 @@
   };
   window.saveStaff = async (id) => {
     const full_name = $('#stName').value.trim(), email = $('#stEmail').value.trim(), role = $('#stRole').value, trainer_id = $('#stTrainer').value || null;
-    if (!full_name || !role || (!id && !email)) { toast('Fill required fields', true); return; }
+    if (!full_name || !role || (!id && !email)) { if (!validateRequired(['#stName', '#stEmail', '#stRole'])) toast('Complete the highlighted fields', true); else toast('Fill required fields', true); return; }
     try { if (id) await api('/api/admin/staff/' + id, { method: 'PUT', body: JSON.stringify({ full_name, role, trainer_id })}); else await api('/api/admin/staff', { method: 'POST', body: JSON.stringify({ full_name, email, role, trainer_id })}); toast('Saved ✓'); closeModal(); route(); } catch (e) { toast(e.message, true); }
   };
   window.disableStaff = (id) => confirmBox('Disable staff?', 'This user will lose admin access.', async () => { await api('/api/admin/staff/' + id, { method: 'DELETE' }); toast('Staff disabled'); route(); }, 'Disable');
@@ -819,7 +882,7 @@
     const date = q.date || todayISO();
     const res = await api(`/api/admin/attendance?q=${encodeURIComponent(q.q || '')}&date=${date}&page=${page}&pageSize=20`);
     $('#content').innerHTML = `
-      <div class="toolbar"><div class="search"><i class="fa-solid fa-magnifying-glass" style="color:var(--muted)"></i><input placeholder="Search member…" value="${esc(q.q || '')}" onkeydown="if(event.key==='Enter'){location.hash='#/attendance?q='+encodeURIComponent(this.value)+'&date=${date}'}"></div>
+      <div class="toolbar">${searchBox('Search member…', 'attendance', q)}
         <input type="date" class="input" style="max-width:180px" value="${date}" onchange="location.hash='#/attendance?date='+this.value"></div>
       <div class="table-wrap"><table><thead><tr><th>Member</th><th>Entry</th><th>Method</th><th>Device</th><th>Status</th><th>Reason</th></tr></thead>
       <tbody>${res.data.map(a => `<tr><td><b>${esc(a.member_name || '—')}</b><br><small class="muted">${esc(a.member_email || '')}</small></td><td>${fmtDT(a.entry_time)}</td><td>${esc(a.access_method || '—')}</td><td class="muted">${esc(a.device_id ? a.device_id.slice(0, 8) : '—')}</td><td>${a.status === 'GRANTED' ? statusBadge('GRANTED') : statusBadge('DENIED')}</td><td class="muted">${esc(a.reason || '')}</td></tr>`).join('') || '<tr><td colspan="6" class="empty">No attendance for this date</td></tr>'}</tbody></table></div>
@@ -846,7 +909,7 @@
   function deviceBadge(s) { return { ONLINE: '<span class="badge badge-active">ONLINE</span>', OFFLINE: '<span class="badge badge-offline">OFFLINE</span>', ERROR: '<span class="badge badge-expired">ERROR</span>', DISABLED: '<span class="badge badge-cancelled">DISABLED</span>' }[s] || esc(s); }
   window.manualGrant = async () => {
     const member_email = $('#mEmailManual').value.trim(), reason = $('#mReasonManual').value.trim();
-    if (!member_email || !reason) { toast('Email and reason required', true); return; }
+    if (!member_email || !reason) { if (!validateRequired(['#mEmailManual', '#mReasonManual'])) toast('Complete the highlighted fields', true); else toast('Email and reason required', true); return; }
     try { const j = await api('/api/admin/access/manual', { method: 'POST', body: JSON.stringify({ member_email, reason }) }); toast('Manual access: ' + (j.result === 'GRANTED' ? 'Granted' : j.reason) + ' (audited)'); route(); } catch (e) { toast(e.message, true); }
   };
 
@@ -857,7 +920,9 @@
     const status = q.status || '';
     const res = await api(`/api/admin/access/logs?page=${page}&date=${date}&status=${status}`);
     $('#content').innerHTML = `
-      <div class="toolbar"><h3 style="margin:0">Access Logs</h3><div" style="display:flex;gap:8px"><input type="date" class="input" style="max-width:170px" value="${date}" onchange="location.hash='#/access-log?date='+this.value"><button class="chip ${status === 'GRANTED' ? 'active' : ''}" onclick="location.hash='#/access-log?date=${date}&status=GRANTED'">Granted</button><button class="chip ${status === 'DENIED' ? 'active' : ''}" onclick="location.hash='#/access-log?date=${date}&status=DENIED'">Denied</button></div></div>
+      <div class="toolbar"><h3 style="margin:0">Access Logs</h3>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><input type="date" class="input" style="max-width:170px" value="${date}" onchange="location.hash='#/access-log?date='+this.value">
+        <button class="chip ${status === 'GRANTED' ? 'active' : ''}" onclick="location.hash='#/access-log?date=${date}&status=GRANTED'">Granted</button><button class="chip ${status === 'DENIED' ? 'active' : ''}" onclick="location.hash='#/access-log?date=${date}&status=DENIED'">Denied</button></div></div>
       <div class="table-wrap"><table><thead><tr><th>Member</th><th>Device</th><th>Time</th><th>Method</th><th>Status</th><th>Reason</th></tr></thead>
       <tbody>${res.data.map(a => `<tr><td><b>${esc(a.member_name || 'Unknown')}</b>${a.member_email ? '<br><small class="muted">' + esc(a.member_email) + '</small>' : ''}</td><td class="muted">${esc(a.device_name || '—')}</td><td>${fmtDT(a.created_at)}</td><td>${esc(a.access_method || '—')}</td><td>${a.status === 'GRANTED' ? statusBadge('GRANTED') : statusBadge('DENIED')}</td><td class="muted">${esc(a.reason || '')}</td></tr>`).join('') || '<tr><td colspan="6" class="empty">No access logs</td></tr>'}</tbody></table></div>
       ${pagination('access-log', page, res.total, 20)}`;
@@ -884,7 +949,7 @@
   };
   window.saveDevice = async (id) => {
     const payload = { name: $('#dvName').value.trim(), location: $('#dvLoc').value, identifier: $('#dvId').value, status: $('#dvStatus').value };
-    if (!payload.name) { toast('Name required', true); return; }
+    if (!payload.name) { if (!validateRequired(['#dvName'])) toast('Complete the highlighted fields', true); else toast('Name required', true); return; }
     try { if (id) await api('/api/admin/access/devices/' + id, { method: 'PUT', body: JSON.stringify(payload) }); else await api('/api/admin/access/devices', { method: 'POST', body: JSON.stringify(payload) }); toast('Saved ✓'); closeModal(); route(); } catch (e) { toast(e.message, true); }
   };
   window.disableDevice = (id) => confirmBox('Disable device?', 'This device will no longer permit entry.', async () => { await api('/api/admin/access/devices/' + id, { method: 'DELETE' }); toast('Device disabled'); route(); }, 'Disable');
@@ -1046,8 +1111,8 @@
     const res = await api(`/api/admin/enquiries?q=${encodeURIComponent(q.q || '')}&status=${status}&page=${page}&pageSize=15`);
     const chips = [['', 'All'], ['new', 'New'], ['contacted', 'Contacted'], ['follow_up', 'Follow Up'], ['converted', 'Converted'], ['closed', 'Closed']];
     $('#content').innerHTML = `
-      <div class="toolbar"><div class="search"><i class="fa-solid fa-magnifying-glass" style="color:var(--muted)"></i><input placeholder="Search name, phone, email…" value="${esc(q.q || '')}" onkeydown="if(event.key==='Enter'){location.hash='#/enquiries?q='+encodeURIComponent(this.value)+'&status=${status}'}"></div></div>
-      <div class="filter-row">${chips.map(c => `<button class="chip ${status === c[0] ? 'active' : ''}" onclick="location.hash='#/enquiries${c[0] ? '?status=' + c[0].toUpperCase() : ''}'">${c[1]}</button>`).join('')}</div>
+      <div class="toolbar">${searchBox('Search name, phone, email…', 'enquiries', q)}</div>
+      ${filterChips('enquiries', chips, status)}
       <div class="table-wrap"><table><thead><tr><th>Name</th><th>Contact</th><th>Message</th><th>Status</th><th>Date</th><th></th></tr></thead>
       <tbody>${res.data.map(e => `<tr><td><b>${esc(e.name)}</b></td><td class="muted">${esc(e.phone || '')}<br>${esc(e.email || '')}</td><td class="muted"><span style="max-width:260px;display:inline-block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(e.message || '')}</span></td><td>${enqBadge(e.status)}</td><td class="muted">${fmtDT(e.created_at)}</td><td><div class="row-actions">${can('STAFF') ? `<button class="btn btn-sm btn-ghost" onclick="enquiryForm('${e.id}')"><i class="fa-solid fa-pen"></i></button>` : ''}${can('STAFF') ? `<button class="btn btn-ghost btn-sm" style="color:#ef4444" onclick="deleteEnquiry('${e.id}')"><i class="fa-solid fa-trash"></i></button>` : ''}</div></td></tr>`).join('') || '<tr><td colspan="6" class="empty">No enquiries</td></tr>'}</tbody></table></div>
       ${pagination('enquiries', page, res.total, 15)}`;
@@ -1169,7 +1234,15 @@
   // ---------------- UI helpers wired globally ----------------
   window.closeModal = closeModal;
   window.closeConfirm = closeConfirm;
-  window.toggleSidebar = () => $('#sidebar').classList.toggle('open');
+  window.toggleSidebar = (force) => {
+    const s = $('#sidebar'); const b = $('#sideBackdrop');
+    const open = typeof force === 'boolean' ? force : !s.classList.contains('open');
+    s.classList.toggle('open', open);
+    b.classList.toggle('show', open);
+    document.body.classList.toggle('drawer-open', open);
+  };
+  window.addEventListener('keydown', (e) => { if (e.key === 'Escape' && window.innerWidth <= 860) window.toggleSidebar(false); });
+  window.addEventListener('resize', () => { if (window.innerWidth > 860) window.toggleSidebar(false); });
 
   document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeModal(); closeConfirm(); } });
 

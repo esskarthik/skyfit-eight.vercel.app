@@ -20,7 +20,10 @@
     <label class="label">Email</label>
     <input id="loginEmail" class="input" type="email" placeholder="admin@skyfit.com" autocomplete="username">
     <label class="label">Password</label>
-    <input id="loginPwd" class="input" type="password" placeholder="••••••••" autocomplete="current-password">
+    <div class="pwd-wrap">
+      <input id="loginPwd" class="input" type="password" placeholder="••••••••" autocomplete="current-password">
+      <button type="button" class="pwd-toggle" id="pwdToggle" onclick="togglePwd()" aria-label="Show password"><i class="fa-solid fa-eye"></i></button>
+    </div>
     <button class="btn btn-primary btn-block" id="loginBtn" onclick="doLogin()">Unlock admin <i class="fa-solid fa-arrow-right"></i></button>
     <p id="loginErr" class="login-err" style="display:none"></p>
   </div>
@@ -28,6 +31,7 @@
 
 <!-- APP SHELL -->
 <div id="appView" class="app" style="display:none">
+  <div class="side-backdrop" id="sideBackdrop" onclick="toggleSidebar(false)" aria-hidden="true"></div>
   <aside class="sidebar" id="sidebar">
     <div class="side-brand"><img src="assets/logo-new-icon.png" alt="">SKYFIT <em>ZONE</em> <span>ADMIN</span></div>
     <nav class="side-nav" id="sideNav"></nav>
