@@ -43,6 +43,8 @@ const PERMS = {
   'enquiries.view': 'STAFF',
   'enquiries.manage': 'STAFF',
   'reports.view': 'STAFF',
+  'announcements.view': 'STAFF',
+  'announcements.manage': 'MANAGER',
   'notifications.view': 'STAFF',
   'notifications.manage': 'MANAGER',
   'settings.view': 'STAFF',

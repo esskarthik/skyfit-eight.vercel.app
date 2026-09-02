@@ -128,6 +128,38 @@ function renderSupplements(){
 }
 function filterSupplements(tag){ supFilter = tag; renderSupplements(); }
 
+// ---------------- Announcements (gym → web users) ----------------
+let ANNOUNCEMENTS = [];
+async function loadAnnouncements(){
+  try{
+    const r = await fetch(API+'/api/announcements');
+    if(!r.ok) throw 0;
+    ANNOUNCEMENTS = await r.json();
+  }catch(e){ ANNOUNCEMENTS = []; }
+  renderAnnouncements();
+}
+function renderAnnouncements(){
+  const bar = document.getElementById('announcementBar');
+  if(!bar) return;
+  const dismissed = JSON.parse(localStorage.getItem('skyfit_ann_dismissed')||'[]');
+  const visible = ANNOUNCEMENTS.filter(a => !dismissed.includes(a.id));
+  if(!visible.length){ bar.style.display='none'; bar.innerHTML=''; return; }
+  bar.style.display='grid';
+  bar.innerHTML = visible.map(a=>{
+    const icon = a.type==='urgent' ? 'fa-triangle-exclamation' : a.type==='warning' ? 'fa-triangle-exclamation' : a.type==='success' ? 'fa-check' : 'fa-bullhorn';
+    const pin = a.is_pinned ? '<span class="pin"><i class="fa-solid fa-thumbtack"></i> PINNED</span>' : '';
+    const when = a.created_at ? new Date(a.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short'}) : '';
+    return `<div class="ann-item ${a.type||'info'}"><div class="ann-icon ${a.type||'info'}"><i class="fa-solid ${icon}"></i></div><div class="ann-body"><b>${a.title.replace(/"/g,'&quot;')} ${pin}</b><p>${(a.message||'').replace(/</g,'&lt;')}</p><div class="ann-meta">${when}${a.expires_at ? ' • until '+new Date(a.expires_at).toLocaleDateString('en-GB') : ''}</div></div><button class="ann-close" onclick="dismissAnn('${a.id}')" aria-label="Dismiss"><i class="fa-solid fa-xmark"></i></button></div>`;
+  }).join('');
+}
+function dismissAnn(id){
+  const d = JSON.parse(localStorage.getItem('skyfit_ann_dismissed')||'[]');
+  if(!d.includes(id)) d.push(id);
+  localStorage.setItem('skyfit_ann_dismissed', JSON.stringify(d));
+  renderAnnouncements();
+}
+function clearDismissedAnn(){ localStorage.removeItem('skyfit_ann_dismissed'); renderAnnouncements(); }
+
 function renderPlans(tab){
   const mount=document.getElementById('plansMount');
   const cat = PLANS[tab];
@@ -616,4 +648,6 @@ document.getElementById('mTrainerSelect')?.addEventListener('change', ()=>{ sele
 loadPlans().then(()=>{ renderDashboard(); });
 loadTrainers();
 loadSupplements();
+loadAnnouncements();
+setInterval(loadAnnouncements, 60000);
 document.addEventListener('keydown', e=>{ if(e.key==='Escape'){ closeCheckout(); closeTrainerModal(); }});

@@ -197,6 +197,7 @@
         { h: '#/progress', i: 'fa-solid fa-chart-line', t: 'Progress' }
       ] },
       { title: 'Content', show: !(R === 'TRAINER'), links: [
+        { h: '#/announcements', i: 'fa-solid fa-bullhorn', t: 'Announcements' },
         { h: '#/gallery', i: 'fa-regular fa-images', t: 'Gallery' },
         { h: '#/transformations', i: 'fa-solid fa-fire', t: 'Transformations' }
       ] },
@@ -371,6 +372,7 @@
         case 'progress': await viewProgress(); break;
         case 'gallery': await viewGallery(); break;
         case 'transformations': await viewTransformations(); break;
+        case 'announcements': await viewAnnouncements(); break;
         case 'enquiries': await viewEnquiries(qparams()); break;
         case 'reports': await viewReports(qparams()); break;
         case 'notifications': await viewNotifications(); break;
@@ -1103,6 +1105,75 @@
     reader.readAsDataURL(file);
   };
   window.archiveTrans = (id) => confirmBox('Archive transformation?', 'It will be hidden from the public site.', async () => { await api('/api/admin/transformations/' + id, { method: 'DELETE' }); toast('Archived'); route(); }, 'Archive');
+
+  // ---------------- ANNOUNCEMENTS (gym → web users) ----------------
+  function annTypeBadge(t) {
+    const map = { info: '<span class="badge badge-info">INFO</span>', warning: '<span class="badge badge-soon">WARNING</span>', success: '<span class="badge badge-active">SUCCESS</span>', urgent: '<span class="badge badge-cancelled">URGENT</span>' };
+    return map[String(t||'info').toLowerCase()] || `<span class="badge badge-pending">${esc(t||'')}</span>`;
+  }
+  async function viewAnnouncements() {
+    const list = await api('/api/admin/announcements');
+    const activeCount = list.filter(a => a.is_active && (!a.expires_at || new Date(a.expires_at) > new Date())).length;
+    $('#content').innerHTML = `
+      <div class="toolbar"><h3 style="margin:0"><i class="fa-solid fa-bullhorn" style="color:var(--primary)"></i> Announcements <span class="muted" style="font-size:12px;margin-left:8px">${activeCount} live • ${list.length} total</span></h3>
+        ${can('MANAGER') ? `<button class="btn btn-primary" onclick="announcementForm()"><i class="fa-solid fa-plus"></i> New announcement</button>` : ''}</div>
+      <p class="muted" style="font-size:12px;margin-bottom:12px"><i class="fa-solid fa-circle-info"></i> Broadcast from gym to all web users. Active + non-expired items appear as a banner + section on the public site. <a href="#" onclick="window.open('/','_blank');return false" style="color:var(--primary)">View site →</a></p>
+      <div class="table-wrap"><table><thead><tr><th>Title</th><th>Message</th><th>Type</th><th>Pinned</th><th>Active</th><th>Expires</th><th>Created</th><th></th></tr></thead>
+      <tbody>${list.map(a => `<tr>
+        <td><b>${esc(a.title)}</b>${a.is_pinned ? ' <i class="fa-solid fa-thumbtack" style="color:var(--primary)"></i>' : ''}</td>
+        <td class="muted"><span style="max-width:280px;display:inline-block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(a.message||'')}</span></td>
+        <td>${annTypeBadge(a.type)}</td>
+        <td>${a.is_pinned ? '<span class="badge badge-info">PINNED</span>' : '<span class="muted">—</span>'}</td>
+        <td>${a.is_active ? '<span class="badge badge-active">LIVE</span>' : '<span class="badge badge-pending">OFF</span>'}</td>
+        <td class="muted">${a.expires_at ? fmtDT(a.expires_at) : 'Never'}</td>
+        <td class="muted">${fmtDT(a.created_at)}</td>
+        <td><div class="row-actions">${can('MANAGER') ? `<button class="btn btn-ghost btn-sm" onclick="announcementForm('${a.id}')"><i class="fa-solid fa-pen"></i></button><button class="btn btn-ghost btn-sm" onclick="toggleAnn('${a.id}','is_active',${!a.is_active})"><i class="fa-solid fa-${a.is_active?'eye-slash':'eye'}"></i></button><button class="btn btn-ghost btn-sm" style="color:#ef4444" onclick="deleteAnn('${a.id}')"><i class="fa-solid fa-trash"></i></button>` : ''}</div></td>
+      </tr>`).join('') || '<tr><td colspan="8" class="empty">No announcements yet — create the first broadcast</td></tr>'}</tbody></table></div>`;
+  }
+  window.announcementForm = async (id) => {
+    let a = null;
+    if (id) {
+      const list = await api('/api/admin/announcements');
+      a = list.find(x => x.id === id) || null;
+      if (!a) { toast('Not found', true); return; }
+    }
+    const typeOpts = [['info','Info — blue'],['success','Success — green'],['warning','Warning — amber'],['urgent','Urgent — red']].map(o=> ({v:o[0],t:o[1]}));
+    const expVal = a && a.expires_at ? new Date(new Date(a.expires_at).getTime() - new Date().getTimezoneOffset()*60000).toISOString().slice(0,16) : '';
+    openModal(`<h3>${a ? 'Edit announcement' : 'New announcement'}</h3>
+      <p class="muted" style="font-size:12px;margin-bottom:10px">Visible instantly to all users on the public site. Pin to keep at top.</p>
+      <div class="form-grid">
+        ${field('annTitle','Title', a ? a.title : '', 'e.g. Holiday Closure Dec 25', 'text', true)}
+        ${field('annMsg','Message', a ? a.message : '', 'Full message visible to users…', 'textarea')}
+        ${select('annType','Type', typeOpts, a ? a.type : 'info')}
+        ${field('annPrio','Priority (higher = top)', a ? a.priority : 0, '', 'number')}
+        ${field('annExp','Expires at (optional)', expVal, '', 'datetime-local')}
+        <div class="span2" style="display:flex;gap:16px;align-items:center;flex-wrap:wrap">
+          <label style="display:flex;gap:8px;align-items:center;cursor:pointer"><input type="checkbox" id="annPinned" ${a && a.is_pinned ? 'checked' : ''}> Pinned</label>
+          <label style="display:flex;gap:8px;align-items:center;cursor:pointer"><input type="checkbox" id="annActive" ${!a || a.is_active ? 'checked' : ''}> Active (live now)</label>
+        </div>
+      </div>
+      <div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="saveAnn('${a ? a.id : ''}')">${a ? 'Save' : 'Publish'}</button></div>`);
+  };
+  window.saveAnn = async (id) => {
+    const title = $('#annTitle').value.trim(), message = $('#annMsg').value.trim();
+    if (!title || !message) { if (!validateRequired(['#annTitle','#annMsg'])) toast('Complete highlighted fields', true); else toast('Title & message required', true); return; }
+    const payload = {
+      title, message,
+      type: $('#annType').value,
+      priority: Number($('#annPrio').value||0),
+      is_pinned: $('#annPinned').checked,
+      is_active: $('#annActive').checked,
+      expires_at: $('#annExp').value ? new Date($('#annExp').value).toISOString() : null
+    };
+    const btn = document.querySelector('#modal .btn-primary'); if (btn) btn.disabled = true;
+    try {
+      if (id) await api('/api/admin/announcements/' + id, { method: 'PUT', body: JSON.stringify(payload) });
+      else await api('/api/admin/announcements', { method: 'POST', body: JSON.stringify(payload) });
+      toast(id ? 'Updated ✓' : 'Published ✓'); closeModal(); route();
+    } catch (e) { toast(e.message, true); if (btn) btn.disabled = false; }
+  };
+  window.deleteAnn = (id) => confirmBox('Delete announcement?', 'Removed from all users instantly.', async () => { try{ await api('/api/admin/announcements/' + id, { method:'DELETE' }); toast('Deleted'); route(); } catch(e){ toast(e.message,true); } }, 'Delete');
+  window.toggleAnn = async (id, field, val) => { try{ const p={}; p[field]=val; await api('/api/admin/announcements/' + id, { method:'PUT', body: JSON.stringify(p) }); route(); } catch(e){ toast(e.message,true); } };
 
   // ---------------- ENQUIRIES ----------------
   async function viewEnquiries(q) {

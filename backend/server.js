@@ -301,6 +301,33 @@ app.get('/api/supplements', async (req, res) => {
   res.json(data || []);
 });
 
+// ---------------------------------------------------------------------------
+// PUBLIC ANNOUNCEMENTS (gym → web users)
+// ---------------------------------------------------------------------------
+async function annFrom(action) {
+  try { return await action(); }
+  catch (e) {
+    const msg = String((e && (e.message || e.details)) || e);
+    if (/relation "announcements" does not exist|PGRST205/.test(msg)) return { missing: true, data: [], error: null };
+    throw e;
+  }
+}
+app.get('/api/announcements', async (req, res) => {
+  try {
+    let q = supabase.from('announcements').select('*').eq('is_active', true).order('is_pinned', { ascending: false }).order('priority', { ascending: false }).order('created_at', { ascending: false }).limit(20);
+    const { data, error } = await annFrom(() => q);
+    if (error) throw error;
+    if (!data) return res.json([]);
+    const now = new Date();
+    const filtered = data.filter(a => !a.expires_at || new Date(a.expires_at) > now);
+    res.json(filtered);
+  } catch (e) {
+    // graceful fallback if table missing or not migrated yet
+    if (e && /relation "announcements" does not exist|PGRST205/.test(String(e.message||e))) return res.json([]);
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // Public contact form
 app.post('/api/enquiries', wrap(async (req, res) => {
   const { name, phone, email, message } = req.body;
@@ -1429,6 +1456,65 @@ app.delete('/api/admin/enquiries/:id', requirePerm('enquiries.manage'), wrap(asy
   const { error } = await supabase.from('enquiries').delete().eq('id', req.params.id);
   if (error) return res.status(404).json({ error: 'Enquiry not found' });
   await audit(req.actor, 'Deleted enquiry', 'enquiry', req.params.id);
+  res.json({ ok: true });
+}));
+
+// ---------------------------------------------------------------------------
+// ANNOUNCEMENTS (gym → web users)
+// ---------------------------------------------------------------------------
+app.get('/api/admin/announcements', requirePerm('announcements.view'), wrap(async (req, res) => {
+  const { data, error } = await annFrom(() => supabase.from('announcements').select('*').order('is_pinned', { ascending: false }).order('priority', { ascending: false }).order('created_at', { ascending: false }).limit(100));
+  if (error) throw error;
+  if (!data) return res.json([]);
+  res.json(data);
+}));
+app.post('/api/admin/announcements', requirePerm('announcements.manage'), wrap(async (req, res) => {
+  const { title, message, type, priority, is_pinned, is_active, expires_at } = req.body;
+  if (!title || !message) return res.status(400).json({ error: 'title and message required' });
+  const t = String(type || 'info').toLowerCase();
+  if (!['info','warning','success','urgent'].includes(t)) return res.status(400).json({ error: 'Invalid type' });
+  const payload = {
+    title: String(title).slice(0, 150).trim(),
+    message: String(message).slice(0, 2000).trim(),
+    type: t,
+    priority: Number(priority) || 0,
+    is_pinned: !!is_pinned,
+    is_active: is_active !== false,
+    expires_at: expires_at ? new Date(expires_at).toISOString() : null,
+    created_by: req.actor.email
+  };
+  const { data, error } = await supabase.from('announcements').insert(payload).select().single();
+  if (error) {
+    const msg = String(error.message||'');
+    if (/relation "announcements" does not exist|PGRST205/.test(msg)) return res.status(500).json({ error: 'Announcements table not found. Run supabase/migrations/202609020001_announcements.sql in Supabase SQL Editor.' });
+    throw error;
+  }
+  await audit(req.actor, 'Created announcement', 'announcement', data.id, { title: data.title });
+  res.status(201).json(data);
+}));
+app.put('/api/admin/announcements/:id', requirePerm('announcements.manage'), wrap(async (req, res) => {
+  const update = {};
+  if (req.body.title !== undefined) update.title = String(req.body.title).slice(0,150).trim();
+  if (req.body.message !== undefined) update.message = String(req.body.message).slice(0,2000).trim();
+  if (req.body.type !== undefined) {
+    const t = String(req.body.type).toLowerCase();
+    if (!['info','warning','success','urgent'].includes(t)) return res.status(400).json({ error: 'Invalid type' });
+    update.type = t;
+  }
+  if (req.body.priority !== undefined) update.priority = Number(req.body.priority) || 0;
+  if (req.body.is_pinned !== undefined) update.is_pinned = !!req.body.is_pinned;
+  if (req.body.is_active !== undefined) update.is_active = !!req.body.is_active;
+  if (req.body.expires_at !== undefined) update.expires_at = req.body.expires_at ? new Date(req.body.expires_at).toISOString() : null;
+  update.updated_at = new Date().toISOString();
+  const { data, error } = await supabase.from('announcements').update(update).eq('id', req.params.id).select().single();
+  if (error || !data) return res.status(404).json({ error: 'Announcement not found' });
+  await audit(req.actor, 'Edited announcement', 'announcement', req.params.id);
+  res.json(data);
+}));
+app.delete('/api/admin/announcements/:id', requirePerm('announcements.manage'), wrap(async (req, res) => {
+  const { error } = await supabase.from('announcements').delete().eq('id', req.params.id);
+  if (error) return res.status(404).json({ error: 'Announcement not found' });
+  await audit(req.actor, 'Deleted announcement', 'announcement', req.params.id);
   res.json({ ok: true });
 }));
 
