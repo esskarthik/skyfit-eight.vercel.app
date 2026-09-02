@@ -14,7 +14,7 @@ const app = express();
 const PORT = process.env.PORT || 4000;
 
 app.use(cors());
-app.use(express.json({ limit: '2mb' }));
+app.use(express.json({ limit: '12mb' }));
 
 // Serve frontend
 const frontendPath = path.join(__dirname, '..', 'frontend');
@@ -951,16 +951,20 @@ app.delete('/api/admin/supplements/:id', requirePerm('supplements.manage'), wrap
 app.post('/api/admin/supplements/upload', requirePerm('supplements.manage'), wrap(async (req, res) => {
   const { dataUrl } = req.body;
   if (!dataUrl) return res.status(400).json({ error: 'dataUrl required' });
-  const allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-  const m = /^data:(image\/[a-z+]+);base64,(.+)$/.exec(dataUrl);
-  if (m && !allowed.includes(m[1])) return res.status(400).json({ error: 'Unsupported image type' });
+  const m = /^data:([^;]+);base64,(.+)$/.exec(dataUrl);
+  if (m) {
+    const mime = m[1].toLowerCase();
+    if (!mime.startsWith('image/')) return res.status(400).json({ error: 'Unsupported file type: ' + m[1] + '. Please upload an image (JPEG, PNG, WEBP, GIF, HEIC, AVIF, SVG).' });
+  }
+  let mimeType = m ? m[1].toLowerCase() : 'image/png';
+  if (mimeType === 'image/jpg') mimeType = 'image/jpeg';
   const buf = Buffer.from(m ? m[2] : dataUrl.replace(/^data:.*;base64,/, ''), 'base64');
   if (!buf.length || buf.length > 5 * 1024 * 1024) return res.status(400).json({ error: 'File too large (max 5MB)' });
   const fileName = 'supplements/' + Date.now() + '-' + Math.random().toString(36).slice(2, 8) + '.img';
   let url;
   try {
     await ensureBucket('supplements');
-    const { error } = await supabase.storage.from('supplements').upload(fileName, buf, { contentType: m ? m[1] : 'image/png', upsert: false });
+    const { error } = await supabase.storage.from('supplements').upload(fileName, buf, { contentType: mimeType, upsert: false });
     if (error) throw error;
     const { data: pub } = supabase.storage.from('supplements').getPublicUrl(fileName);
     url = pub.publicUrl;
@@ -1298,16 +1302,20 @@ app.delete('/api/admin/gallery/:id', requirePerm('gallery.manage'), wrap(async (
 app.post('/api/admin/upload', requirePerm('gallery.manage'), wrap(async (req, res) => {
   const { dataUrl, bucket } = req.body;
   if (!dataUrl) return res.status(400).json({ error: 'dataUrl required' });
-  const allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-  const m = /^data:(image\/[a-z+]+);base64,(.+)$/.exec(dataUrl);
-  if (m && !allowed.includes(m[1])) return res.status(400).json({ error: 'Unsupported image type' });
+  const m = /^data:([^;]+);base64,(.+)$/.exec(dataUrl);
+  if (m) {
+    const mime = m[1].toLowerCase();
+    if (!mime.startsWith('image/')) return res.status(400).json({ error: 'Unsupported file type: ' + m[1] + '. Please upload an image (JPEG, PNG, WEBP, GIF, HEIC, AVIF, SVG).' });
+  }
+  let mimeType = m ? m[1].toLowerCase() : 'image/png';
+  if (mimeType === 'image/jpg') mimeType = 'image/jpeg';
   const buf = Buffer.from(m ? m[2] : dataUrl.replace(/^data:.*;base64,/, ''), 'base64');
   if (!buf.length || buf.length > 5 * 1024 * 1024) return res.status(400).json({ error: 'File too large (max 5MB)' });
   const bkt = await ensureBucket(bucket || 'gallery');
   const fileName = bkt + '/' + Date.now() + '-' + Math.random().toString(36).slice(2, 8) + '.img';
   let url;
   try {
-    const { error } = await supabase.storage.from(bkt).upload(fileName, buf, { contentType: m ? m[1] : 'image/png', upsert: false });
+    const { error } = await supabase.storage.from(bkt).upload(fileName, buf, { contentType: mimeType, upsert: false });
     if (error) throw error;
     const { data: pub } = supabase.storage.from(bkt).getPublicUrl(fileName);
     url = pub.publicUrl;
@@ -1321,16 +1329,20 @@ app.post('/api/admin/upload', requirePerm('gallery.manage'), wrap(async (req, re
 app.post('/api/admin/gallery/upload', requirePerm('gallery.manage'), wrap(async (req, res) => {
   const { category, name, dataUrl } = req.body;
   if (!dataUrl) return res.status(400).json({ error: 'dataUrl required' });
-  const allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-  const m = /^data:(image\/[a-z+]+);base64,(.+)$/.exec(dataUrl);
-  if (m && !allowed.includes(m[1])) return res.status(400).json({ error: 'Unsupported image type' });
+  const m = /^data:([^;]+);base64,(.+)$/.exec(dataUrl);
+  if (m) {
+    const mime = m[1].toLowerCase();
+    if (!mime.startsWith('image/')) return res.status(400).json({ error: 'Unsupported file type: ' + m[1] + '. Please upload an image (JPEG, PNG, WEBP, GIF, HEIC, AVIF, SVG).' });
+  }
+  let mimeType = m ? m[1].toLowerCase() : 'image/png';
+  if (mimeType === 'image/jpg') mimeType = 'image/jpeg';
   const buf = Buffer.from(m ? m[2] : dataUrl.replace(/^data:.*;base64,/, ''), 'base64');
   if (buf.length > 5 * 1024 * 1024) return res.status(400).json({ error: 'File too large (max 5MB)' });
   const fileName = 'gallery/' + Date.now() + '-' + (name || 'image').replace(/[^a-zA-Z0-9._-]/g, '_');
   let upErr;
   try {
     await ensureBucket('gallery');
-    const { error } = await supabase.storage.from('gallery').upload(fileName, buf, { contentType: m ? m[1] : 'image/png', upsert: false });
+    const { error } = await supabase.storage.from('gallery').upload(fileName, buf, { contentType: mimeType, upsert: false });
     upErr = error;
   } catch (e) { upErr = e; }
   if (upErr) return res.status(500).json({ error: 'Upload failed: ' + (upErr.message || 'unknown error') + '. Create a public Storage bucket named "gallery" or check storage permissions.' });
