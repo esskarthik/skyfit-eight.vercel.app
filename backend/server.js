@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 const { createClient } = require('@supabase/supabase-js');
 
 const { requirePerm, requireAuth, resolveActor, roleSatisfies, normalizeRole, storeRole } = require('./lib/rbac');
@@ -304,26 +305,61 @@ app.get('/api/supplements', async (req, res) => {
 // ---------------------------------------------------------------------------
 // PUBLIC ANNOUNCEMENTS (gym → web users)
 // ---------------------------------------------------------------------------
+function isAnnMissingErr(err) {
+  if (!err) return false;
+  const code = String(err.code || '');
+  const msg = String(err.message || err.details || err || '');
+  return code === 'PGRST205' || /Could not find.*announcements/i.test(msg) || /relation "announcements" does not exist/i.test(msg);
+}
 async function annFrom(action) {
-  try { return await action(); }
-  catch (e) {
-    const msg = String((e && (e.message || e.details)) || e);
-    if (/relation "announcements" does not exist|PGRST205/.test(msg)) return { missing: true, data: [], error: null };
+  try {
+    const res = await action();
+    if (res && res.error && isAnnMissingErr(res.error)) return { data: [], error: null, missing: true };
+    return res;
+  } catch (e) {
+    const msg = String((e && (e.message || e.details || e.code)) || e);
+    if (/relation "announcements" does not exist|PGRST205|Could not find.*announcements/i.test(msg) || isAnnMissingErr(e)) return { missing: true, data: [], error: null };
     throw e;
   }
+}
+// File fallback when announcements table not yet migrated — keeps feature live
+const annFallbackPath = path.join(__dirname, 'data', 'announcements.json');
+function annFallbackRead() {
+  try {
+    if (!fs.existsSync(annFallbackPath)) return [];
+    const raw = fs.readFileSync(annFallbackPath, 'utf8');
+    const arr = JSON.parse(raw || '[]');
+    return Array.isArray(arr) ? arr : [];
+  } catch (e) { return []; }
+}
+function annFallbackWrite(list) {
+  try {
+    fs.mkdirSync(path.dirname(annFallbackPath), { recursive: true });
+    fs.writeFileSync(annFallbackPath, JSON.stringify(list, null, 2));
+  } catch (e) { console.error('[annFallbackWrite]', e.message); }
 }
 app.get('/api/announcements', async (req, res) => {
   try {
     let q = supabase.from('announcements').select('*').eq('is_active', true).order('is_pinned', { ascending: false }).order('priority', { ascending: false }).order('created_at', { ascending: false }).limit(20);
     const { data, error } = await annFrom(() => q);
-    if (error) throw error;
+    if (error) {
+      if (isAnnMissingErr(error)) {
+        const list = annFallbackRead().filter(a=> a.is_active && (!a.expires_at || new Date(a.expires_at) > new Date()));
+        list.sort((a,b)=> (b.is_pinned - a.is_pinned) || (b.priority - a.priority) || (new Date(b.created_at) - new Date(a.created_at)));
+        return res.json(list.slice(0,20));
+      }
+      throw error;
+    }
     if (!data) return res.json([]);
     const now = new Date();
     const filtered = data.filter(a => !a.expires_at || new Date(a.expires_at) > now);
     res.json(filtered);
   } catch (e) {
-    // graceful fallback if table missing or not migrated yet
-    if (e && /relation "announcements" does not exist|PGRST205/.test(String(e.message||e))) return res.json([]);
+    if (isAnnMissingErr(e) || /relation "announcements" does not exist|PGRST205|Could not find.*announcements/i.test(String(e.message||e))) {
+      const list = annFallbackRead().filter(a=> a.is_active && (!a.expires_at || new Date(a.expires_at) > new Date()));
+      list.sort((a,b)=> (b.is_pinned - a.is_pinned) || (b.priority - a.priority) || (new Date(b.created_at) - new Date(a.created_at)));
+      return res.json(list.slice(0,20));
+    }
     res.status(500).json({ error: e.message });
   }
 });
@@ -1464,7 +1500,14 @@ app.delete('/api/admin/enquiries/:id', requirePerm('enquiries.manage'), wrap(asy
 // ---------------------------------------------------------------------------
 app.get('/api/admin/announcements', requirePerm('announcements.view'), wrap(async (req, res) => {
   const { data, error } = await annFrom(() => supabase.from('announcements').select('*').order('is_pinned', { ascending: false }).order('priority', { ascending: false }).order('created_at', { ascending: false }).limit(100));
-  if (error) throw error;
+  if (error) {
+    if (isAnnMissingErr(error)) {
+      const list = annFallbackRead();
+      list.sort((a,b)=> (b.is_pinned - a.is_pinned) || (b.priority - a.priority) || (new Date(b.created_at) - new Date(a.created_at)));
+      return res.json(list);
+    }
+    throw error;
+  }
   if (!data) return res.json([]);
   res.json(data);
 }));
@@ -1485,8 +1528,15 @@ app.post('/api/admin/announcements', requirePerm('announcements.manage'), wrap(a
   };
   const { data, error } = await supabase.from('announcements').insert(payload).select().single();
   if (error) {
-    const msg = String(error.message||'');
-    if (/relation "announcements" does not exist|PGRST205/.test(msg)) return res.status(500).json({ error: 'Announcements table not found. Run supabase/migrations/202609020001_announcements.sql in Supabase SQL Editor.' });
+    if (isAnnMissingErr(error)) {
+      const list = annFallbackRead();
+      const now = new Date().toISOString();
+      const row = { id: crypto.randomUUID(), ...payload, created_at: now, updated_at: now };
+      list.unshift(row);
+      annFallbackWrite(list);
+      await audit(req.actor, 'Created announcement (fallback)', 'announcement', row.id, { title: row.title });
+      return res.status(201).json(row);
+    }
     throw error;
   }
   await audit(req.actor, 'Created announcement', 'announcement', data.id, { title: data.title });
@@ -1507,13 +1557,35 @@ app.put('/api/admin/announcements/:id', requirePerm('announcements.manage'), wra
   if (req.body.expires_at !== undefined) update.expires_at = req.body.expires_at ? new Date(req.body.expires_at).toISOString() : null;
   update.updated_at = new Date().toISOString();
   const { data, error } = await supabase.from('announcements').update(update).eq('id', req.params.id).select().single();
-  if (error || !data) return res.status(404).json({ error: 'Announcement not found' });
+  if (error) {
+    if (isAnnMissingErr(error)) {
+      const list = annFallbackRead();
+      const idx = list.findIndex(a=> String(a.id) === String(req.params.id));
+      if (idx === -1) return res.status(404).json({ error: 'Announcement not found' });
+      list[idx] = { ...list[idx], ...update };
+      annFallbackWrite(list);
+      await audit(req.actor, 'Edited announcement (fallback)', 'announcement', req.params.id);
+      return res.json(list[idx]);
+    }
+    if (error) return res.status(404).json({ error: 'Announcement not found' });
+  }
+  if (!data) return res.status(404).json({ error: 'Announcement not found' });
   await audit(req.actor, 'Edited announcement', 'announcement', req.params.id);
   res.json(data);
 }));
 app.delete('/api/admin/announcements/:id', requirePerm('announcements.manage'), wrap(async (req, res) => {
   const { error } = await supabase.from('announcements').delete().eq('id', req.params.id);
-  if (error) return res.status(404).json({ error: 'Announcement not found' });
+  if (error) {
+    if (isAnnMissingErr(error)) {
+      const list = annFallbackRead();
+      const filtered = list.filter(a=> String(a.id) !== String(req.params.id));
+      if (filtered.length === list.length) return res.status(404).json({ error: 'Announcement not found' });
+      annFallbackWrite(filtered);
+      await audit(req.actor, 'Deleted announcement (fallback)', 'announcement', req.params.id);
+      return res.json({ ok: true });
+    }
+    return res.status(404).json({ error: 'Announcement not found' });
+  }
   await audit(req.actor, 'Deleted announcement', 'announcement', req.params.id);
   res.json({ ok: true });
 }));
