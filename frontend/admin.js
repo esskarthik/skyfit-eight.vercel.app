@@ -132,6 +132,12 @@
     if (storedGet('skyfit_token')) {
       const j = await api('/api/admin/check');
       if (j.actor) actor = j.actor;
+      // If admin is not allowed due to member count, force logout
+      if (actor && j.adminAllowed === false) {
+        toast('Admin access denied: too many active members (' + j.activeMembers + '/' + j.maxMembers + ')', true);
+        doLogout();
+        return;
+      }
     }
     if (!actor) { doLogout(); return; }
     SESSION = actor;
