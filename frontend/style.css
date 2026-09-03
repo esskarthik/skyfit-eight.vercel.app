@@ -14,6 +14,23 @@
   --gold:#f59e0b;
   --radius:16px;
 }
+
+[data-theme='light']{
+  --bg:#F8F9FA;
+  --bg2:#E4E6EB;
+  --card:#FFFFFF;
+  --card2:#F4F6F8;
+  --border:#D0D5DD;
+  --muted:#656D78;
+  --text:#111827;
+  --accent:#C0392B;
+  --accent2:#7D3C1C;
+  --primary:#E74C3C;
+  --primary2:#C0392B;
+  --green:#1E8449;
+  --gold:#D4AC0D;
+  --radius:16px;
+}
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
 body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;overflow-x:hidden}

@@ -661,3 +661,25 @@ loadSupplements();
 loadAnnouncements();
 setInterval(loadAnnouncements, 60000);
 document.addEventListener('keydown', e=>{ if(e.key==='Escape'){ closeCheckout(); closeTrainerModal(); }});
+
+// Theme toggle
+function toggleTheme(){
+  const html = document.documentElement;
+  const isLight = html.getAttribute('data-theme') === 'light';
+  html.setAttribute('data-theme', isLight ? null : 'light');
+  const icon = document.getElementById('themeIcon');
+  if(icon){
+    icon.className = isLight ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
+  }
+  localStorage.setItem('skyfit_theme', isLight ? 'dark' : 'light');
+}
+
+// Initialize theme on page load
+document.addEventListener('DOMContentLoaded', ()=>{
+  const saved = localStorage.getItem('skyfit_theme');
+  if(saved){
+    document.documentElement.setAttribute('data-theme', saved);
+    const icon = document.getElementById('themeIcon');
+    if(icon) icon.className = saved === 'light' ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+  }
+});
