@@ -128,6 +128,11 @@ function renderSupplements(){
 }
 function filterSupplements(tag){ supFilter = tag; renderSupplements(); }
 
+/* Splash screen control */
+let splashDone = false;
+function showSplash(){ const s=document.getElementById('splashScreen'); if(s) s.classList.remove('hidden') }
+function hideSplash(){ const s=document.getElementById('splashScreen'); if(s) s.classList.add('hidden') }
+
 // ---------------- Announcements (gym → web users) ----------------
 let ANNOUNCEMENTS = [];
 async function loadAnnouncements(){
@@ -642,7 +647,12 @@ function handleContact(e){
   return false;
 }
 
-// init
+// init — show splash first, then initialize app
+showSplash();
+setTimeout(() => {
+  hideSplash();
+}, 2500);
+
 document.getElementById('mStartDate')?.addEventListener('change', updateExpiryPreview);
 document.getElementById('mTrainerSelect')?.addEventListener('change', ()=>{ selectedTrainerId=document.getElementById('mTrainerSelect').value; if(selectedTrainerId) localStorage.setItem('skyfit_trainer', selectedTrainerId); else localStorage.removeItem('skyfit_trainer'); updateTrainerBanner(); renderTrainers(trainerFilter); updateSelectedPlanBox(); updatePaySummary(); });
 loadPlans().then(()=>{ renderDashboard(); });
