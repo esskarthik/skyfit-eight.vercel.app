@@ -651,7 +651,7 @@ function handleContact(e){
 showSplash();
 setTimeout(() => {
   hideSplash();
-}, 2500);
+}, 2000);
 
 document.getElementById('mStartDate')?.addEventListener('change', updateExpiryPreview);
 document.getElementById('mTrainerSelect')?.addEventListener('change', ()=>{ selectedTrainerId=document.getElementById('mTrainerSelect').value; if(selectedTrainerId) localStorage.setItem('skyfit_trainer', selectedTrainerId); else localStorage.removeItem('skyfit_trainer'); updateTrainerBanner(); renderTrainers(trainerFilter); updateSelectedPlanBox(); updatePaySummary(); });
