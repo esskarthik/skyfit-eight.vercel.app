@@ -516,12 +516,12 @@ app.post('/api/access/decide', wrap(async (req, res) => {
 }));
 
 // ---------------------------------------------------------------------------
-// ADMIN AUTH CHECK — also enforces max 4 active members for admin access
+// ADMIN AUTH CHECK — also enforces max 3 active members for admin access
 // ---------------------------------------------------------------------------
 app.get('/api/admin/check', requireAuth, wrap(async (req, res) => {
   const { count: activeCount } = await db().from('memberships').select('*', { count: 'exact', head: true }).eq('status', 'ACTIVE');
-  // Allow admin access only when active members <= 4; block 5th+ person
-  const maxAllowed = 4;
+  // Allow admin access only when active members <= 3; block 4th+ person
+  const maxAllowed = 3;
   const allowed = activeCount <= maxAllowed;
   res.json({ ok: true, actor: { email: req.actor.email, name: req.actor.name, role: req.actor.role }, activeMembers: activeCount, adminAllowed: allowed, maxMembers: maxAllowed });
 }));
