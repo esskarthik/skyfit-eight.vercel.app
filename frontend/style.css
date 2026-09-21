@@ -112,13 +112,12 @@ a{color:inherit;text-decoration:none}
 /* STUDIO */
 .studio{display:grid;grid-template-columns:.9fr 1.1fr;gap:28px;align-items:center}
 @media(max-width:900px){.studio{grid-template-columns:1fr}}
-.studio-visual{position:relative;display:grid;place-items:center;background:radial-gradient(500px 400px at 50% 50%, rgba(255,59,31,.12), transparent 70%);border:1px solid var(--border);border-radius:28px;padding:28px}
-.studio-mark{width:160px;height:160px;object-fit:contain;border-radius:22px;box-shadow:0 20px 60px rgba(0,0,0,.45);background:#fff;padding:6px}
+.studio-visual{position:relative;display:grid;place-items:center;background:radial-gradient(500px 400px at 50% 50%, rgba(255,59,31,.12), transparent 70%);border:1px solid var(--border);border-radius:28px;padding:14px;overflow:hidden}
+.studio-mark{width:100%;max-width:520px;height:auto;min-height:260px;object-fit:contain;object-position:center;border-radius:22px;box-shadow:0 20px 60px rgba(0,0,0,.45);background:#fff;padding:0;display:block}
 .studio-ring{position:absolute;inset:18px;border:1px dashed rgba(255,59,31,.25);border-radius:24px;pointer-events:none}
 .studio-badges{position:absolute;bottom:12px;display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
 .studio-badges span{font-size:10px;letter-spacing:.12em;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);padding:6px 8px;border-radius:999px;color:var(--muted);font-weight:700}
-.studio-copy h2{font-size:38px;font-weight:900;letter-spacing:-.02em}
-.studio-copy h2 span{color:var(--primary)}
+.studio-copy h2{font-size:42px;font-weight:900;letter-spacing:.02em;text-transform:uppercase;color:var(--text)}
 .lead{font-size:15px;margin:8px 0}
 .stats4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:16px 0}
 .stats4 b{font-size:22px;display:block}
