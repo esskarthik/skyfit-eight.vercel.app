@@ -114,7 +114,8 @@ async function getTrainers() {
   return list;
 }
 function findTrainerById(id) {
-  return (_trainerCache.data || []).find(t => t.id === id) || null;
+  const lid = String(id||'').toLowerCase();
+  return (_trainerCache.data || []).find(t => String(t.id).toLowerCase() === lid) || null;
 }
 async function resolveTrainer(id) {
   if (!id) return null;
