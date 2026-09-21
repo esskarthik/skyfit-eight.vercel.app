@@ -128,6 +128,11 @@ function renderSupplements(){
 }
 function filterSupplements(tag){ supFilter = tag; renderSupplements(); }
 
+/* Splash screen control */
+let splashDone = false;
+function showSplash(){ const s=document.getElementById('splashScreen'); if(s) s.classList.remove('hidden') }
+function hideSplash(){ const s=document.getElementById('splashScreen'); if(s) s.classList.add('hidden') }
+
 // ---------------- Announcements (gym → web users) ----------------
 let ANNOUNCEMENTS = [];
 async function loadAnnouncements(){
@@ -642,7 +647,12 @@ function handleContact(e){
   return false;
 }
 
-// init
+// init — show splash first, then initialize app
+showSplash();
+setTimeout(() => {
+  hideSplash();
+}, 2000);
+
 document.getElementById('mStartDate')?.addEventListener('change', updateExpiryPreview);
 document.getElementById('mTrainerSelect')?.addEventListener('change', ()=>{ selectedTrainerId=document.getElementById('mTrainerSelect').value; if(selectedTrainerId) localStorage.setItem('skyfit_trainer', selectedTrainerId); else localStorage.removeItem('skyfit_trainer'); updateTrainerBanner(); renderTrainers(trainerFilter); updateSelectedPlanBox(); updatePaySummary(); });
 loadPlans().then(()=>{ renderDashboard(); });
@@ -651,3 +661,25 @@ loadSupplements();
 loadAnnouncements();
 setInterval(loadAnnouncements, 60000);
 document.addEventListener('keydown', e=>{ if(e.key==='Escape'){ closeCheckout(); closeTrainerModal(); }});
+
+// Theme toggle
+function toggleTheme(){
+  const html = document.documentElement;
+  const isLight = html.getAttribute('data-theme') === 'light';
+  html.setAttribute('data-theme', isLight ? null : 'light');
+  const icon = document.getElementById('themeIcon');
+  if(icon){
+    icon.className = isLight ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
+  }
+  localStorage.setItem('skyfit_theme', isLight ? 'dark' : 'light');
+}
+
+// Initialize theme on page load
+document.addEventListener('DOMContentLoaded', ()=>{
+  const saved = localStorage.getItem('skyfit_theme');
+  if(saved){
+    document.documentElement.setAttribute('data-theme', saved);
+    const icon = document.getElementById('themeIcon');
+    if(icon) icon.className = saved === 'light' ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+  }
+});
