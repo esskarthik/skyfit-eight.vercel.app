@@ -30,22 +30,22 @@ async function loadPlans(){
   }catch(e){
     PLANS = {
       gym:{id:'gym',label:'Normal Gym Membership',plans:[
-        {id:'gym-monthly',name:'1 Month',durationLabel:'1 Month',price:1299,durationDays:30},
-        {id:'gym-quarterly',name:'3 Months',durationLabel:'3 Months',price:3499,durationDays:90,tag:'POPULAR',save:'Save ₹398'},
-        {id:'gym-halfyearly',name:'6 Months',durationLabel:'6 Months',price:5499,durationDays:180,tag:'VALUE',save:'Save ₹2295'},
-        {id:'gym-yearly',name:'Annual',durationLabel:'12 Months',price:9999,durationDays:365,tag:'BEST VALUE',save:'Save ₹5589'}
+        {id:'gym-monthly',name:'1 Month',durationLabel:'30 days',price:1299,durationDays:30},
+        {id:'gym-quarterly',name:'3 Months',durationLabel:'90 days',price:3499,durationDays:90,tag:'POPULAR',save:'Save ₹398'},
+        {id:'gym-halfyearly',name:'6 Months',durationLabel:'180 days',price:5499,durationDays:180,tag:'VALUE',save:'Save ₹2,295'},
+        {id:'gym-yearly',name:'Annual',durationLabel:'365 days',price:9999,durationDays:365,tag:'BEST VALUE',save:'Save ₹5,589'}
       ]},
       personal:{id:'personal',label:'Personal Training',plans:[
-        {id:'pt-onetime',name:'One-to-One',durationLabel:'Per Session',price:5000,durationDays:30},
-        {id:'pt-quarterly',name:'3 Months',durationLabel:'3 Months',price:13000,durationDays:90,tag:'POPULAR'},
-        {id:'pt-halfyearly',name:'6 Months',durationLabel:'6 Months',price:24000,durationDays:180,tag:'VALUE'},
-        {id:'pt-yearly',name:'Annual',durationLabel:'12 Months',price:45000,durationDays:365,tag:'BEST VALUE'}
+        {id:'pt-onetime',name:'One-to-One',durationLabel:'30 days (Per Session)',price:5000,durationDays:30},
+        {id:'pt-quarterly',name:'3 Months',durationLabel:'90 days',price:13000,durationDays:90,tag:'POPULAR'},
+        {id:'pt-halfyearly',name:'6 Months',durationLabel:'180 days',price:24000,durationDays:180,tag:'VALUE'},
+        {id:'pt-yearly',name:'Annual',durationLabel:'365 days',price:45000,durationDays:365,tag:'BEST VALUE'}
       ]},
-      transformation:{id:'transformation',label:'Transformation Program',plans:[
-        {id:'transform-monthly',name:'1 Month',durationLabel:'1 Month',price:1499,durationDays:30},
-        {id:'transform-quarterly',name:'3 Months',durationLabel:'3 Months',price:3999,durationDays:90,tag:'POPULAR',save:'Save ₹498'},
-        {id:'transform-halfyearly',name:'6 Months',durationLabel:'6 Months',price:6999,durationDays:180,tag:'VALUE',save:'Save ₹1995'},
-        {id:'transform-yearly',name:'Annual',durationLabel:'12 Months',price:11999,durationDays:365,tag:'BEST VALUE',save:'Save ₹5989'}
+      transformation:{id:'transformation',label:'Transformation Program',isPremium:true,plans:[
+        {id:'transform-monthly',name:'1 Month',durationLabel:'30 days',price:1499,durationDays:30},
+        {id:'transform-quarterly',name:'3 Months',durationLabel:'90 days',price:3999,durationDays:90,tag:'POPULAR',save:'Save ₹498'},
+        {id:'transform-halfyearly',name:'6 Months',durationLabel:'180 days',price:6999,durationDays:180,tag:'VALUE',save:'Save ₹1,995'},
+        {id:'transform-yearly',name:'Annual',durationLabel:'365 days',price:11999,durationDays:365,tag:'BEST VALUE',save:'Save ₹5,989'}
       ]},
       elite:{id:'elite',label:'SKYFIT ELITE',plans:[
         {id:'elite-yearly',name:'SKYFIT ELITE',durationLabel:'Per Year',price:60000,durationDays:365,tag:'ELITE',featured:true,includes:['Unlimited gym access','Personal training sessions','Diet consultation','Body composition tracking','Priority trainer support','Transformation challenges','Exclusive member benefits']}

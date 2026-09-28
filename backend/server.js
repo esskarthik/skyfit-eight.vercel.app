@@ -18,8 +18,15 @@ app.use(cors());
 app.use(express.json({ limit: '12mb' }));
 
 // Serve frontend
+const rootPath = path.join(__dirname, '..');
 const frontendPath = path.join(__dirname, '..', 'frontend');
 const publicPath = path.join(__dirname, '..', 'public');
+app.get('/', (req, res) => res.sendFile(path.join(rootPath, 'index.html')));
+app.get('/style.css', (req, res) => res.sendFile(path.join(rootPath, 'style.css')));
+app.get('/app.js', (req, res) => res.sendFile(path.join(rootPath, 'app.js')));
+app.get('/sw.js', (req, res) => res.sendFile(path.join(rootPath, 'sw.js')));
+app.get('/manifest.json', (req, res) => res.sendFile(path.join(rootPath, 'manifest.json')));
+if (fs.existsSync(path.join(rootPath, 'assets'))) app.use('/assets', express.static(path.join(rootPath, 'assets')));
 if (fs.existsSync(frontendPath)) app.use(express.static(frontendPath));
 if (fs.existsSync(publicPath)) app.use(express.static(publicPath));
 
