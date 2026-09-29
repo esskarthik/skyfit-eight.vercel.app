@@ -371,12 +371,29 @@ app.get('/api/announcements', async (req, res) => {
   }
 });
 
-// Public contact form
+// Public contact form: stores the enquiry and emails the gym inbox when the
+// RESEND_API_KEY deployment variable is configured.
 app.post('/api/enquiries', wrap(async (req, res) => {
-  const { name, phone, email, message } = req.body;
-  if (!name || !message) return res.status(400).json({ error: 'name and message required' });
-  const { error } = await supabase.from('enquiries').insert({ name: String(name).slice(0, 150), phone: String(phone || '').slice(0, 20), email: String(email || '').slice(0, 150), message: String(message).slice(0, 2000) });
-  if (error) return res.status(500).json({ error: 'Could not submit enquiry' });
+  const name = String(req.body.name || '').trim().slice(0, 150);
+  const phone = String(req.body.phone || '').trim().slice(0, 20);
+  const email = String(req.body.email || '').trim().slice(0, 150);
+  const interest = String(req.body.interest || '').trim().slice(0, 150);
+  const message = String(req.body.message || '').trim().slice(0, 2000);
+  if (!name || !email) return res.status(400).json({ error: 'name and email required' });
+  if (!/^\S+@\S+\.\S+$/.test(email)) return res.status(400).json({ error: 'valid email required' });
+  const fullMessage = interest ? `Interest: ${interest}\n\n${message}` : message;
+  if (HAS_SUPABASE) {
+    const { error } = await supabase.from('enquiries').insert({ name, phone, email, message: fullMessage });
+    if (error) return res.status(500).json({ error: 'Could not submit enquiry' });
+  }
+  if (!process.env.RESEND_API_KEY) return res.status(503).json({ error: 'Email delivery is not configured yet' });
+  const recipient = process.env.CONTACT_EMAIL || 'skyfitzone234@gmail.com';
+  const emailResponse = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ from: process.env.CONTACT_FROM || 'SKYFIT Website <onboarding@resend.dev>', to: [recipient], reply_to: email, subject: `New SKYFIT enquiry from ${name}`, text: `Name: ${name}\nEmail: ${email}\nPhone: ${phone || 'Not provided'}\n\n${fullMessage}` })
+  });
+  if (!emailResponse.ok) return res.status(502).json({ error: 'Message was saved, but email delivery failed' });
   res.json({ ok: true });
 }));
 

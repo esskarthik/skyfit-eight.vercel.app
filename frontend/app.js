@@ -394,6 +394,16 @@ function promptLookup(){
   renderDashboard();
   toast('Looking up membership for '+email);
 }
+async function handleContact(event){
+  event.preventDefault();
+  const form = event.target;
+  const button = form.querySelector('button[type="submit"]');
+  const payload = {name:document.getElementById('cName').value.trim(),email:document.getElementById('cEmail').value.trim(),phone:document.getElementById('cPhone').value.trim(),interest:document.getElementById('cInterest').value,message:document.getElementById('cMsg').value.trim()};
+  if(!payload.name || !payload.email){ toast('Please enter your name and email'); return false; }
+  if(button) { button.disabled=true; button.innerHTML='Sending…'; }
+  try{ const r=await fetch(API+'/api/enquiries',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)}); const data=await r.json().catch(()=>({})); if(!r.ok) throw new Error(data.error||'Could not send your message'); form.reset(); toast('Message sent — we will contact you soon'); }catch(e){ toast(e.message,true); }finally{ if(button){button.disabled=false;button.innerHTML='Send message <i class="fa-solid fa-paper-plane"></i>'; } }
+  return false;
+}
 function logSession(){
   if(!activeMembership || !activeMembership.sessions) return;
   activeMembership.sessionsUsed = Math.min(activeMembership.sessions, (activeMembership.sessionsUsed||0)+1);

@@ -71,6 +71,20 @@ npm start   # http://localhost:4000
 
 To stop: `Get-Process node | Stop-Process` or Ctrl+C in terminal.
 
+## Contact form email delivery
+The public contact form stores enquiries in Supabase and sends them to
+`skyfitzone234@gmail.com` through Resend. Configure these deployment variables:
+
+```text
+RESEND_API_KEY=re_...
+CONTACT_EMAIL=skyfitzone234@gmail.com
+CONTACT_FROM=SKYFIT Website <noreply@your-verified-domain.com>
+```
+
+`CONTACT_FROM` must use a sender address verified in Resend. Without
+`RESEND_API_KEY`, the API returns a configuration error instead of pretending
+that the message was delivered.
+
 ## Project Structure
 ```
 skyfit-zone/
