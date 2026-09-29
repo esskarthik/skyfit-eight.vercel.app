@@ -1110,6 +1110,7 @@ app.post('/api/admin/staff', requirePerm('staff.manage'), wrap(async (req, res) 
   const { full_name, email, role, trainer_id, password } = req.body;
   if (!full_name || !email || !role) return res.status(400).json({ error: 'full_name, email, role required' });
   if (!['ADMIN', 'MANAGER', 'STAFF', 'TRAINER'].includes(String(role).toUpperCase())) return res.status(400).json({ error: 'Invalid role' });
+  if (!password || String(password).length < 8) return res.status(400).json({ error: 'A password of at least 8 characters is required' });
   const normEmail = String(email).trim().toLowerCase();
   // 1) create the Supabase Auth login (id is a FK on staff_profiles -> auth.users)
   const { data: au, error: auErr } = await authSupabase.auth.admin.createUser({
@@ -1128,6 +1129,13 @@ app.post('/api/admin/staff', requirePerm('staff.manage'), wrap(async (req, res) 
 app.put('/api/admin/staff/:id', requirePerm('staff.manage'), wrap(async (req, res) => {
   const { full_name, role, active, trainer_id } = req.body;
   const update = {};
+  const { data: current } = await supabase.from('staff_profiles').select('role, is_active').eq('id', req.params.id).maybeSingle();
+  if (!current) return res.status(404).json({ error: 'Staff not found' });
+  const remainsAdmin = normalizeRole(current.role) === 'ADMIN' && current.is_active !== false && String(role || 'ADMIN').toUpperCase() === 'ADMIN' && active !== false;
+  if (!remainsAdmin && normalizeRole(current.role) === 'ADMIN' && current.is_active !== false) {
+    const { count } = await supabase.from('staff_profiles').select('*', { count: 'exact', head: true }).eq('is_active', true).in('role', ['ADMIN', 'admin', 'owner']);
+    if ((count || 0) <= 3) return res.status(409).json({ error: 'Keep at least 3 active ADMIN accounts' });
+  }
   if (full_name !== undefined) update.full_name = String(full_name).trim();
   if (role !== undefined) { if (!['ADMIN', 'MANAGER', 'STAFF', 'TRAINER'].includes(String(role).toUpperCase())) return res.status(400).json({ error: 'Invalid role' }); update.role = storeRole(role); }
   if (active !== undefined) update.is_active = !!active;
@@ -1138,6 +1146,12 @@ app.put('/api/admin/staff/:id', requirePerm('staff.manage'), wrap(async (req, re
   res.json({ ...data, role: normalizeRole(data.role) });
 }));
 app.delete('/api/admin/staff/:id', requirePerm('staff.manage'), wrap(async (req, res) => {
+  const { data: current } = await supabase.from('staff_profiles').select('role, is_active').eq('id', req.params.id).maybeSingle();
+  if (!current) return res.status(404).json({ error: 'Staff not found' });
+  if (normalizeRole(current.role) === 'ADMIN' && current.is_active !== false) {
+    const { count } = await supabase.from('staff_profiles').select('*', { count: 'exact', head: true }).eq('is_active', true).in('role', ['ADMIN', 'admin', 'owner']);
+    if ((count || 0) <= 3) return res.status(409).json({ error: 'Keep at least 3 active ADMIN accounts' });
+  }
   await supabase.from('staff_profiles').update({ is_active: false }).eq('id', req.params.id);
   await audit(req.actor, 'Disabled staff', 'staff', req.params.id);
   res.json({ ok: true });

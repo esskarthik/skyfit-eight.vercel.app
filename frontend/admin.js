@@ -854,9 +854,10 @@
   // ---------------- STAFF ----------------
   async function viewStaff() {
     const staff = await api('/api/admin/staff');
+    const adminCount = staff.filter(s => s.is_active && s.role === 'ADMIN').length;
     $('#content').innerHTML = `
       <div class="toolbar"><h3 style="margin:0">Staff & Roles</h3>${can('ADMIN') ? `<button class="btn btn-primary" onclick="staffForm()"><i class="fa-solid fa-user-plus"></i> New staff</button>` : ''}</div>
-      <p class="muted" style="font-size:12px;margin-bottom:12px">Roles: ADMIN (full), MANAGER (operations), STAFF (front desk), TRAINER (assigned members & fitness). Authorization is enforced server-side.</p>
+      <p class="muted" style="font-size:12px;margin-bottom:12px">Active admin logins: <b>${adminCount}/3 minimum</b>. Create three separate ADMIN accounts for shared coverage. Roles: ADMIN (full), MANAGER (operations), STAFF (front desk), TRAINER (assigned members & fitness).</p>
       <div class="table-wrap"><table><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th>${can('ADMIN') ? '<th></th>' : ''}</tr></thead>
       <tbody>${staff.map(s => `<tr><td><b>${esc(s.full_name)}</b></td><td class="muted">${esc(s.email)}</td><td>${roleBadge(s.role)}</td><td>${s.is_active ? '<span class="badge badge-active">Active</span>' : '<span class="badge badge-cancelled">Disabled</span>'}</td>${can('ADMIN') ? `<td><div class="row-actions"><button class="btn btn-ghost btn-sm" onclick="staffForm('${s.id}')"><i class="fa-solid fa-pen"></i></button>${s.is_active ? `<button class="btn btn-ghost btn-sm" style="color:#ef4444" onclick="disableStaff('${s.id}')"><i class="fa-solid fa-ban"></i></button>` : `<button class="btn btn-ghost btn-sm" style="color:#22c55e" onclick="enableStaff('${s.id}')"><i class="fa-solid fa-check"></i></button>`}</div></td>` : ''}</tr>`).join('') || '<tr><td colspan="5" class="empty">No staff</td></tr>'}</tbody></table></div>`;
   }
@@ -871,15 +872,16 @@
     openModal(`<h3>${s ? 'Edit staff' : 'New staff'}</h3><div class="form-grid">
       ${field('stName', 'Full name', s ? s.full_name : '', '', 'text', true)}
       ${field('stEmail', 'Email', s ? s.email : '', 'user@skyfit.com', 'email', !s)}
+      ${!s ? field('stPassword', 'Password', '', 'At least 8 characters', 'password', true) : ''}
       ${select('stRole', 'Role', [['ADMIN', 'ADMIN'], ['MANAGER', 'MANAGER'], ['STAFF', 'STAFF'], ['TRAINER', 'TRAINER']].map(r => ({ v: r[0], t: r[1] })), s ? s.role : 'STAFF', true)}
       ${select('stTrainer', 'Linked trainer (for TRAINER)', [{ v: '', t: '-- None --' }, ...activeTrainers.concat(keepCur).map(t => ({ v: t.id, t: t.name + (t.status !== 'active' ? ' (disabled)' : '') }))], s ? s.trainer_id : '')}
       <span class="span2"></span></div>
       <div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="saveStaff('${s ? s.id : ''}')">Save</button></div>`);
   };
   window.saveStaff = async (id) => {
-    const full_name = $('#stName').value.trim(), email = $('#stEmail').value.trim(), role = $('#stRole').value, trainer_id = $('#stTrainer').value || null;
-    if (!full_name || !role || (!id && !email)) { if (!validateRequired(['#stName', '#stEmail', '#stRole'])) toast('Complete the highlighted fields', true); else toast('Fill required fields', true); return; }
-    try { if (id) await api('/api/admin/staff/' + id, { method: 'PUT', body: JSON.stringify({ full_name, role, trainer_id })}); else await api('/api/admin/staff', { method: 'POST', body: JSON.stringify({ full_name, email, role, trainer_id })}); toast('Saved ✓'); closeModal(); route(); } catch (e) { toast(e.message, true); }
+    const full_name = $('#stName').value.trim(), email = $('#stEmail').value.trim(), password = id ? '' : $('#stPassword').value, role = $('#stRole').value, trainer_id = $('#stTrainer').value || null;
+    if (!full_name || !role || (!id && (!email || password.length < 8))) { if (!validateRequired(['#stName', '#stEmail', '#stRole'])) toast('Complete the highlighted fields', true); else toast('Use a password with at least 8 characters', true); return; }
+    try { if (id) await api('/api/admin/staff/' + id, { method: 'PUT', body: JSON.stringify({ full_name, role, trainer_id })}); else await api('/api/admin/staff', { method: 'POST', body: JSON.stringify({ full_name, email, password, role, trainer_id })}); toast('Saved ✓'); closeModal(); route(); } catch (e) { toast(e.message, true); }
   };
   window.disableStaff = (id) => confirmBox('Disable staff?', 'This user will lose admin access.', async () => { await api('/api/admin/staff/' + id, { method: 'DELETE' }); toast('Staff disabled'); route(); }, 'Disable');
   window.enableStaff = (id) => confirmBox('Enable staff?', 'This user will regain admin access.', async () => { await api('/api/admin/staff/' + id, { method: 'PUT', body: JSON.stringify({ active: true }) }); toast('Staff enabled'); route(); }, 'Enable');
