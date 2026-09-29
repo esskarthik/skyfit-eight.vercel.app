@@ -277,7 +277,7 @@
         <p class="contact-sub">Morning 5:30 AM - 8:30 AM • Evening 5:00 PM - 8:30 PM • Free trial on your first visit</p>
         <div class="contact-cards">
           <div class="c-card"><i class="fa-solid fa-location-dot"></i><div><b>Address</b><span>Opposite sri lalitha skin clinic, peddapuram, Andhra Pradesh 533437</span></div></div>
-          <div class="c-card"><i class="fa-solid fa-phone"></i><div><b>Call</b><span><a href="tel:07661806851" style="color:inherit">07661806851</a></span></div></div>
+          <div class="c-card"><i class="fa-solid fa-phone"></i><div><b>Call / WhatsApp</b><span><a href="tel:+918886474903" style="color:inherit">+91 88864 74903</a><br><a href="tel:+917207510174" style="color:inherit">+91 72075 10174</a></span></div></div>
           <div class="c-card"><i class="fa-solid fa-envelope"></i><div><b>Email</b><span><a href="mailto:skyfitzone234@gmail.com" style="color:inherit">skyfitzone234@gmail.com</a></span></div></div>
           <div class="c-card"><i class="fa-regular fa-clock"></i><div><b>Hours</b><span>Morning : 5:30 AM - 8:30 AM &nbsp;•&nbsp; Evening: 5:00 PM - 8:30 PM</span></div></div>
         </div>
@@ -301,7 +301,7 @@
   <div class="container footer-inner">
     <div><a class="logo" href="#home"><img src="assets/logo-new-icon.png" alt="SKYFIT ZONE" class="logo-img logo-photo" style="width:42px;height:42px;border-radius:12px;background:#fff;padding:2px"> SKYFIT <em>ZONE</em></a><p>Building stronger humans since 2018.<br>© 2026 SKYFIT ZONE. All rights reserved.</p></div>
     <div class="footer-links"><a href="#memberships">Memberships</a><a href="#progress">Progress</a><a href="#contact">Contact</a><a href="admin.html" style="color:var(--primary)"><i class="fa-solid fa-shield-halved"></i> Admin</a><a href="#" onclick="event.preventDefault(); openLegal('terms')">Terms</a><a href="#" onclick="event.preventDefault(); openLegal('privacy')">Privacy</a></div>
-    <div class="footer-social"><a href="#"><i class="fa-brands fa-instagram"></i></a><a href="#"><i class="fa-brands fa-youtube"></i></a><a href="#"><i class="fa-brands fa-whatsapp"></i></a></div>
+    <div class="footer-social"><a href="https://www.instagram.com/skyfit_zone_/" target="_blank" rel="noopener noreferrer" aria-label="Open SKYFIT ZONE on Instagram" title="Instagram"><i class="fa-brands fa-instagram"></i></a><a href="#" aria-label="YouTube coming soon" title="YouTube"><i class="fa-brands fa-youtube"></i></a><a href="#" onclick="event.preventDefault(); openWhatsAppChooser()" aria-label="Choose a WhatsApp number" title="WhatsApp"><i class="fa-brands fa-whatsapp"></i></a></div>
   </div>
 </footer>
 
@@ -311,6 +311,15 @@
     <button class="modal-close" onclick="closeLegal()" aria-label="Close legal information"><i class="fa-solid fa-xmark"></i></button>
     <div id="legalContent"></div>
   </article>
+</div>
+
+<div class="modal-overlay whatsapp-overlay" id="whatsappOverlay" onclick="if(event.target===this) closeWhatsAppChooser()" aria-hidden="true">
+  <div class="modal whatsapp-modal" role="dialog" aria-modal="true" aria-labelledby="whatsappTitle">
+    <button class="modal-close" onclick="closeWhatsAppChooser()" aria-label="Close WhatsApp choices"><i class="fa-solid fa-xmark"></i></button>
+    <h3 id="whatsappTitle">Chat with SKYFIT ZONE</h3>
+    <p class="legal-modal p" style="margin:6px 0 16px">Choose a WhatsApp number to continue.</p>
+    <div class="whatsapp-choices"><a href="https://wa.me/918886474903" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-block" onclick="closeWhatsAppChooser()"><i class="fa-brands fa-whatsapp"></i> +91 88864 74903</a><a href="https://wa.me/917207510174" target="_blank" rel="noopener noreferrer" class="btn btn-outline btn-block" onclick="closeWhatsAppChooser()"><i class="fa-brands fa-whatsapp"></i> +91 72075 10174</a></div>
+  </div>
 </div>
 
 <!-- CHECKOUT MODAL -->

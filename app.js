@@ -46,6 +46,8 @@ function openLegal(type){
   overlay.classList.add('open'); overlay.setAttribute('aria-hidden','false'); document.body.style.overflow='hidden';
 }
 function closeLegal(){ const overlay=document.getElementById('legalOverlay'); if(!overlay) return; overlay.classList.remove('open'); overlay.setAttribute('aria-hidden','true'); document.body.style.overflow=''; }
+function openWhatsAppChooser(){ const overlay=document.getElementById('whatsappOverlay'); if(!overlay) return; overlay.classList.add('open'); overlay.setAttribute('aria-hidden','false'); document.body.style.overflow='hidden'; }
+function closeWhatsAppChooser(){ const overlay=document.getElementById('whatsappOverlay'); if(!overlay) return; overlay.classList.remove('open'); overlay.setAttribute('aria-hidden','true'); document.body.style.overflow=''; }
 function daysRemaining(expiresStr){
   const a=new Date(); a.setHours(0,0,0,0);
   const b=new Date(expiresStr); b.setHours(0,0,0,0);
@@ -635,7 +637,7 @@ document.getElementById('mTrainerSelect')?.addEventListener('change', ()=>{ sele
 loadPlans().then(()=>{ renderDashboard(); });
 loadTrainers();
 loadSupplements();
-document.addEventListener('keydown', e=>{ if(e.key==='Escape'){ closeCheckout(); closeTrainerModal(); closeLegal(); }});
+document.addEventListener('keydown', e=>{ if(e.key==='Escape'){ closeCheckout(); closeTrainerModal(); closeLegal(); closeWhatsAppChooser(); }});
 
 function applyTheme(theme){
   const isLight = theme === 'light';
