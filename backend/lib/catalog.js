@@ -40,10 +40,12 @@ let _trainerCache = { at: 0, data: null };
 const TTL = 60 * 1000;
 
 function groupedPlansFromRows(rows) {
-  const cats = {};
+  const cats = JSON.parse(JSON.stringify(STATIC_PLANS));
+  const knownIds = new Set(Object.values(cats).flatMap(cat => cat.plans.map(plan => plan.id)));
   for (const r of rows) {
     const active = r.is_active !== false && r.status !== 'archived';
     if (!active) continue; // archived/deactivated plans are hidden from public
+    if (knownIds.has(r.id)) continue;
     const cat = cats[r.category] || (cats[r.category] = { id: r.category, label: r.category, icon: '🏷️', description: '', features: [], plans: [] });
     cat.description = cat.description || r.description || '';
     cat.plans.push({
@@ -53,8 +55,7 @@ function groupedPlansFromRows(rows) {
       features: Array.isArray(r.features) ? r.features : []
     });
   }
-  if (cats.gym) return cats; // has all
-  return STATIC_PLANS;
+  return cats;
 }
 
 async function getPlans() {
