@@ -202,6 +202,13 @@ a{color:inherit;text-decoration:none}
 .shop-mrp{text-decoration:line-through;color:var(--muted);font-size:13px}
 .shop-save{position:absolute;margin:10px;background:var(--green);color:#052e16;border-radius:999px;padding:4px 8px;font-size:10px;font-weight:800;z-index:1}
 .shop-empty{grid-column:1/-1;text-align:center;color:var(--muted);padding:36px 0}
+.legal-overlay{z-index:100}
+.legal-modal{max-width:760px;max-height:min(82vh,760px);overflow:auto;padding:28px}
+.legal-modal h2{font-family:'Bebas Neue',sans-serif;font-size:38px;letter-spacing:.02em;margin:4px 0 16px}
+.legal-modal h3{font-size:15px;margin:20px 0 5px;color:var(--primary)}
+.legal-modal p{font-size:13px;color:var(--muted);line-height:1.7;margin:0 0 8px}
+.legal-modal a{color:var(--primary);font-weight:700}
+.legal-kicker{font-size:11px;letter-spacing:.08em;color:var(--muted);font-weight:800}
 @media(max-width:1000px){.shop-grid{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:700px){.shop-head{display:block}.shop-filters{justify-content:flex-start;margin-top:16px}.shop-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:480px){.shop-grid{grid-template-columns:1fr}}

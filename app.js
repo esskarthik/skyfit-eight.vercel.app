@@ -24,6 +24,28 @@ function toast(msg){
   t.textContent=msg; t.classList.add('show');
   setTimeout(()=> t.classList.remove('show'), 2600);
 }
+function openLegal(type){
+  const content = document.getElementById('legalContent');
+  const title = type === 'privacy' ? 'Privacy Policy' : 'Terms of Service';
+  content.innerHTML = type === 'privacy' ? `
+    <div class="legal-kicker">SKYFIT ZONE • LAST UPDATED 29 SEPTEMBER 2026</div><h2 id="legalTitle">Privacy Policy</h2>
+    <p>SKYFIT ZONE respects your privacy. This policy explains what we collect when you use our website, contact us, purchase a membership, or interact with our supplement catalog.</p>
+    <h3>Information we collect</h3><p>We may collect your name, email address, phone number, membership details, trainer selection, payment reference, and messages sent through our contact form. We do not store full card numbers or CVV details.</p>
+    <h3>How we use information</h3><p>We use information to process memberships, respond to enquiries, provide trainer support, maintain account and access records, improve our services, and communicate important service updates.</p>
+    <h3>Sharing and security</h3><p>We share information only with service providers needed to operate the website, authentication, payments, hosting, or database services. We apply reasonable technical and organisational safeguards, but no online service can guarantee absolute security.</p>
+    <h3>Retention and your choices</h3><p>We retain records for legitimate business, safety, accounting, and legal purposes. To request access, correction, or deletion of personal information, contact <a href="mailto:skyfitzone234@gmail.com">skyfitzone234@gmail.com</a>.</p>
+    <h3>Cookies and local storage</h3><p>The site may use browser storage for theme preferences, selected trainers, and local membership display. You can clear this data through your browser settings.</p>` : `
+    <div class="legal-kicker">SKYFIT ZONE • LAST UPDATED 29 SEPTEMBER 2026</div><h2 id="legalTitle">Terms of Service</h2>
+    <p>By using the SKYFIT ZONE website, you agree to these terms. If you do not agree, please do not use the website or submit an order or enquiry.</p>
+    <h3>Memberships and payments</h3><p>Membership plans, prices, durations, and included services are shown on the website and may change for future purchases. A membership is confirmed only after the gym accepts the registration and payment or front-desk reservation.</p>
+    <h3>Health and safety</h3><p>You are responsible for providing accurate health information and following trainer and facility instructions. Consult a qualified medical professional before starting exercise if you have a medical condition, injury, or other concern.</p>
+    <h3>Cancellations and conduct</h3><p>Cancellation or renewal requests are handled by SKYFIT ZONE staff under the plan and gym rules applicable at the time of purchase. Members must behave respectfully, follow safety rules, and use equipment properly. Access may be suspended for unsafe, abusive, fraudulent, or disruptive conduct.</p>
+    <h3>Supplement information</h3><p>Supplement descriptions are provided for general information and are not medical advice. Check labels for allergens and ingredients, use products as directed, and consult a healthcare professional when appropriate. Product availability and prices can change.</p>
+    <h3>Contact</h3><p>For questions about these terms, contact SKYFIT ZONE at <a href="mailto:skyfitzone234@gmail.com">skyfitzone234@gmail.com</a> or call <a href="tel:07661806851">07661806851</a>.</p>`;
+  const overlay = document.getElementById('legalOverlay');
+  overlay.classList.add('open'); overlay.setAttribute('aria-hidden','false'); document.body.style.overflow='hidden';
+}
+function closeLegal(){ const overlay=document.getElementById('legalOverlay'); if(!overlay) return; overlay.classList.remove('open'); overlay.setAttribute('aria-hidden','true'); document.body.style.overflow=''; }
 function daysRemaining(expiresStr){
   const a=new Date(); a.setHours(0,0,0,0);
   const b=new Date(expiresStr); b.setHours(0,0,0,0);
@@ -613,7 +635,7 @@ document.getElementById('mTrainerSelect')?.addEventListener('change', ()=>{ sele
 loadPlans().then(()=>{ renderDashboard(); });
 loadTrainers();
 loadSupplements();
-document.addEventListener('keydown', e=>{ if(e.key==='Escape'){ closeCheckout(); closeTrainerModal(); }});
+document.addEventListener('keydown', e=>{ if(e.key==='Escape'){ closeCheckout(); closeTrainerModal(); closeLegal(); }});
 
 function applyTheme(theme){
   const isLight = theme === 'light';

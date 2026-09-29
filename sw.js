@@ -1,4 +1,4 @@
-const CACHE = 'skyfit-v2-supplements';
+const CACHE = 'skyfit-v3-legal';
 const ASSETS = ['/', '/index.html', '/style.css', '/app.js', '/manifest.json', '/admin.html', '/assets/logo-new-icon.png', '/assets/logo-new.png'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)).then(()=> self.skipWaiting()));

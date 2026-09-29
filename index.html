@@ -300,10 +300,18 @@
 <footer class="footer">
   <div class="container footer-inner">
     <div><a class="logo" href="#home"><img src="assets/logo-new-icon.png" alt="SKYFIT ZONE" class="logo-img logo-photo" style="width:42px;height:42px;border-radius:12px;background:#fff;padding:2px"> SKYFIT <em>ZONE</em></a><p>Building stronger humans since 2018.<br>© 2026 SKYFIT ZONE. All rights reserved.</p></div>
-    <div class="footer-links"><a href="#memberships">Memberships</a><a href="#progress">Progress</a><a href="#contact">Contact</a><a href="admin.html" style="color:var(--primary)"><i class="fa-solid fa-shield-halved"></i> Admin</a><a href="#" onclick="event.preventDefault(); toast('Terms & Privacy — coming soon')">Privacy</a></div>
+    <div class="footer-links"><a href="#memberships">Memberships</a><a href="#progress">Progress</a><a href="#contact">Contact</a><a href="admin.html" style="color:var(--primary)"><i class="fa-solid fa-shield-halved"></i> Admin</a><a href="#" onclick="event.preventDefault(); openLegal('terms')">Terms</a><a href="#" onclick="event.preventDefault(); openLegal('privacy')">Privacy</a></div>
     <div class="footer-social"><a href="#"><i class="fa-brands fa-instagram"></i></a><a href="#"><i class="fa-brands fa-youtube"></i></a><a href="#"><i class="fa-brands fa-whatsapp"></i></a></div>
   </div>
 </footer>
+
+<!-- TERMS AND PRIVACY -->
+<div class="modal-overlay legal-overlay" id="legalOverlay" onclick="if(event.target===this) closeLegal()" aria-hidden="true">
+  <article class="modal legal-modal" role="dialog" aria-modal="true" aria-labelledby="legalTitle">
+    <button class="modal-close" onclick="closeLegal()" aria-label="Close legal information"><i class="fa-solid fa-xmark"></i></button>
+    <div id="legalContent"></div>
+  </article>
+</div>
 
 <!-- CHECKOUT MODAL -->
 <div class="modal-overlay" id="checkoutOverlay" onclick="if(event.target===this) closeCheckout()">
