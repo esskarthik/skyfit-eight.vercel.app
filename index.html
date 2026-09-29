@@ -13,6 +13,12 @@
 <meta name="theme-color" content="#FF4A1E">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="SKYFIT ZONE">
+<script>
+  (() => {
+    const saved = localStorage.getItem('skyfit_theme');
+    document.documentElement.dataset.theme = saved || (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+  })();
+</script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <link rel="stylesheet" href="style.css">
 </head>
@@ -28,12 +34,14 @@
       <a href="#trainers">Trainers</a>
       <a href="#transformation">Transformation</a>
       <a href="#memberships">Memberships</a>
+      <a href="#shop">Supplements</a>
       <a href="#progress">Progress</a>
       <a href="#contact">Contact</a>
     </nav>
     <div class="nav-actions">
       <button class="btn btn-ghost hide-mobile" onclick="scrollToDashboard()"><i class="fa-regular fa-user"></i> My Progress</button>
       <button class="btn btn-primary" onclick="openCheckout()"><i class="fa-solid fa-fire"></i> JOIN NOW</button>
+      <button class="btn btn-ghost theme-toggle" id="themeToggle" onclick="toggleTheme()" aria-label="Switch to light mode" title="Switch to light mode"><i class="fa-solid fa-sun" id="themeIcon"></i></button>
       <button class="hamburger" id="hamburger" aria-label="menu"><i class="fa-solid fa-bars"></i></button>
     </div>
   </div>
@@ -221,6 +229,23 @@
         <div><i class="fa-solid fa-headset"></i><b>Priority support</b><span>Trainer on WhatsApp 7 days/week</span></div>
       </div>
     </div>
+  </div>
+</section>
+
+<!-- SUPPLEMENT SHOP -->
+<section id="shop" class="section shop-section">
+  <div class="container">
+    <div class="section-head shop-head">
+      <div><h2><span>FUEL</span> YOUR TRAINING</h2><p>Trusted supplements for energy, recovery, strength, and lean muscle.</p></div>
+      <div class="shop-filters" aria-label="Supplement categories">
+        <button class="shop-filter active" data-category="all" onclick="filterSupplements('all')">All</button>
+        <button class="shop-filter" data-category="pre_workout" onclick="filterSupplements('pre_workout')">Pre-workout</button>
+        <button class="shop-filter" data-category="whey" onclick="filterSupplements('whey')">Whey</button>
+        <button class="shop-filter" data-category="creatine" onclick="filterSupplements('creatine')">Creatine</button>
+        <button class="shop-filter" data-category="mass_gainer" onclick="filterSupplements('mass_gainer')">Mass gainers</button>
+      </div>
+    </div>
+    <div id="shopMount" class="shop-grid"><p class="shop-empty">Loading products...</p></div>
   </div>
 </section>
 

@@ -6,6 +6,15 @@ let selectedTrainerId = localStorage.getItem('skyfit_trainer') || '';
 let currentPay = 'card';
 let activeMembership = null;
 let trainerFilter = 'all';
+let SUPPLEMENTS = [];
+let supplementFilter = 'all';
+const DEFAULT_SUPPLEMENTS = [
+  {name:'Nitro Pump',brand:'ProSupps',category:'pre_workout',price:1499,mrp:1999,size:'300g / 30 servings',flavor:'Blue Raspberry',description:'High-energy pre-workout for explosive training.',stock:25},
+  {name:'Gold Whey Isolate',brand:'Optimum Nutrition',category:'whey',price:2699,mrp:3299,size:'1kg / 30 servings',flavor:'Chocolate',description:'Fast-absorbing whey isolate with 24g protein per scoop.',stock:40},
+  {name:'Creatine Monohydrate',brand:'MuscleTech',category:'creatine',price:899,mrp:1199,size:'400g / 80 servings',flavor:'Unflavoured',description:'Micronized creatine for strength and recovery.',stock:60},
+  {name:'Serious Mass Gainer',brand:'Optimum Nutrition',category:'mass_gainer',price:2999,mrp:3599,size:'3kg / 16 servings',flavor:'Cookies & Cream',description:'High-calorie support for weight and muscle gain.',stock:15},
+  {name:'Whey Protein Concentrate',brand:'Dymatize',category:'whey',price:1999,mrp:2499,size:'2kg / 50 servings',flavor:'Vanilla',description:'Everyday whey concentrate with excellent value.',stock:35}
+];
 
 // utils
 const fmtINR = n => '₹' + Number(n).toLocaleString('en-IN');
@@ -20,6 +29,38 @@ function daysRemaining(expiresStr){
   const b=new Date(expiresStr); b.setHours(0,0,0,0);
   return Math.ceil((b-a)/86400000);
 }
+
+async function loadSupplements(){
+  try{
+    const r = await fetch(API+'/api/supplements');
+    if(!r.ok) throw new Error('Could not load products');
+    SUPPLEMENTS = await r.json();
+    if(!Array.isArray(SUPPLEMENTS) || !SUPPLEMENTS.length) SUPPLEMENTS = DEFAULT_SUPPLEMENTS;
+  }catch(e){ SUPPLEMENTS = DEFAULT_SUPPLEMENTS; }
+  renderSupplements();
+}
+
+function supplementText(value){
+  return String(value || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function renderSupplements(){
+  const mount = document.getElementById('shopMount');
+  if(!mount) return;
+  const products = supplementFilter === 'all' ? SUPPLEMENTS : SUPPLEMENTS.filter(p => p.category === supplementFilter);
+  document.querySelectorAll('.shop-filter').forEach(b => b.classList.toggle('active', b.dataset.category === supplementFilter));
+  if(!products.length){
+    mount.innerHTML = '<p class="shop-empty">Products are being stocked now. Check back soon for our supplement range.</p>';
+    return;
+  }
+  mount.innerHTML = products.map(p => {
+    const name = supplementText(p.name), brand = supplementText(p.brand), image = p.image_url ? supplementText(p.image_url) : '';
+    const price = fmtINR(p.price), mrp = p.mrp && Number(p.mrp) > Number(p.price) ? `<span class="shop-mrp">${fmtINR(p.mrp)}</span>` : '';
+    const discount = p.mrp && Number(p.mrp) > Number(p.price) ? `<span class="shop-save">Save ${Math.round((1 - Number(p.price) / Number(p.mrp)) * 100)}%</span>` : '';
+    const media = image ? `<img src="${image}" alt="${name}" loading="lazy">` : `<div class="shop-placeholder"><i class="fa-solid fa-dumbbell"></i></div>`;
+    return `<article class="shop-card">${discount}<div class="shop-media">${media}</div><div class="shop-card-body"><p class="shop-brand">${brand || 'SKYFIT ZONE'} <span>${supplementText(p.category).replace('_',' ')}</span></p><h3>${name}</h3><p class="shop-description">${supplementText(p.description)}</p>${p.size || p.flavor ? `<p class="shop-meta">${supplementText([p.size,p.flavor].filter(Boolean).join(' • '))}</p>` : ''}<div class="shop-price"><strong>${price}</strong>${mrp}</div><button class="btn ${Number(p.stock) > 0 ? 'btn-primary' : 'btn-ghost'} btn-block" ${Number(p.stock) > 0 ? "onclick=\"toast('Product ordering will be available soon')\"" : 'disabled'}>${Number(p.stock) > 0 ? 'Add to basket' : 'Out of stock'} <i class="fa-solid fa-cart-shopping"></i></button></div></article>`;
+  }).join('');
+}
+function filterSupplements(category){ supplementFilter = category; renderSupplements(); }
 
 // fetch plans
 async function loadPlans(){
@@ -571,4 +612,24 @@ document.getElementById('mStartDate')?.addEventListener('change', updateExpiryPr
 document.getElementById('mTrainerSelect')?.addEventListener('change', ()=>{ selectedTrainerId=document.getElementById('mTrainerSelect').value; if(selectedTrainerId) localStorage.setItem('skyfit_trainer', selectedTrainerId); else localStorage.removeItem('skyfit_trainer'); updateTrainerBanner(); renderTrainers(trainerFilter); updateSelectedPlanBox(); updatePaySummary(); });
 loadPlans().then(()=>{ renderDashboard(); });
 loadTrainers();
+loadSupplements();
 document.addEventListener('keydown', e=>{ if(e.key==='Escape'){ closeCheckout(); closeTrainerModal(); }});
+
+function applyTheme(theme){
+  const isLight = theme === 'light';
+  document.documentElement.dataset.theme = isLight ? 'light' : 'dark';
+  const icon = document.getElementById('themeIcon');
+  const button = document.getElementById('themeToggle');
+  if(icon) icon.className = `fa-solid fa-${isLight ? 'moon' : 'sun'}`;
+  if(button){
+    const next = isLight ? 'dark' : 'light';
+    button.title = `Switch to ${next} mode`;
+    button.setAttribute('aria-label', `Switch to ${next} mode`);
+  }
+}
+function toggleTheme(){
+  const next = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light';
+  localStorage.setItem('skyfit_theme', next);
+  applyTheme(next);
+}
+document.addEventListener('DOMContentLoaded', ()=> applyTheme(localStorage.getItem('skyfit_theme') || document.documentElement.dataset.theme || 'dark'));
